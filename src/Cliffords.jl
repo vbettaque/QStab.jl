@@ -3,7 +3,7 @@ module Cliffords
 using Base
 using ..Binary
 using LinearAlgebra
-using ..Util
+using ..Utils
 
 export Clifford, I, tensor
 

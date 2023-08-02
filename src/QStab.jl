@@ -1,25 +1,27 @@
 module QStab
 
-include("Util.jl")
+include("Utils.jl")
 include("Binary.jl")
 include("Cliffords.jl")
 include("Orthogonals.jl")
-
-using BenchmarkTools
+include("Symplectics.jl")
 
 using .Cliffords
 
 using .Binary
 
 using .Orthogonals
+using .Symplectics
+
+using .Utils
 
 
 function main()
-    @benchmark begin
-    c1::Clifford{10} = I
-    c2::Clifford{10} = I
-    c1 * c2
-    end
+    v1 = bitvec(3, 6)
+    v2 = bitvec(2, 6)
+    display(v1)
+    display(v2)
+    display(v1 ∧ v2)
 end
 
 end
