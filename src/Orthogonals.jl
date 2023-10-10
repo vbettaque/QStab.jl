@@ -7,9 +7,9 @@ using Random
 function group_order(n::Integer)
     @assert iseven(n) && n > 0
 
-    k = n ÷ 2
-    order = (big"2")^(k * k)
-    for i in 1:(k-1)
+    m = n ÷ 2
+    order = (big"2")^(m^2)
+    for i in 1:(m-1)
         order *= ((big"4")^i - 1)
     end
     return order

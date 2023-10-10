@@ -1,5 +1,6 @@
 module Symplectics
 
+using ..Binary
 using LinearAlgebra
 
 export group_order, symp, ∧
@@ -7,8 +8,9 @@ export group_order, symp, ∧
 function group_order(n::Integer)
     @assert iseven(n) && n > 0
 
-    order = (big"2")^(n^2)
-    for i in 1:n
+    m = n ÷ 2
+    order = (big"2")^(m^2)
+    for i in 1:m
         order *= ((big"4")^i - 1)
     end
     return order

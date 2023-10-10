@@ -1,4 +1,4 @@
 .DS_Store
 .vscode/*
-Manifest.toml
 notebooks/*
+Manifest.toml
