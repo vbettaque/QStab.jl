@@ -2,7 +2,7 @@ module Binary
 
 using GaloisFields
 
-export GF2, parity, complement, complement!, bitvec, indexed_odd_bitvec
+export GF2, parity, complement, complement!, parity_complement, parity_complement!, bitvec, indexed_odd_bitvec
 
 const GF2 = @GaloisField 2
 
@@ -14,6 +14,16 @@ complement(arr::AbstractArray{GF2}) = arr .+ GF2(1)
 
 function complement!(arr::AbstractArray{GF2})
     return copyto!(arr, complement(arr))
+end
+
+function parity_complement(vec::AbstractVector{GF2})
+    isone(parity(vec)) && return complement(vec)
+    return vec
+end
+
+function parity_complement!(vec::AbstractVector{GF2})
+    isone(parity(vec)) && complement!(vec)
+    return vec
 end
 
 function bitvec(n::Integer, len::Integer)

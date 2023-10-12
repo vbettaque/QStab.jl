@@ -19,18 +19,17 @@ function _transvect!(M::AbstractMatrix{GF2}, h::AbstractVector{GF2})
     return copyto!(M, M + h * (transpose(h) * M))
 end
 
+function _transvection(h::AbstractVector{GF2})
+    return x -> _transvect!(x, h)
+end
+
 function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     if iszero(v ⋅ w)
         h = w - v
-        return x -> _transvect!(x, h)
-    else
-        h = complement(w - v)
-        return x -> complement!(_transvect!(x, h))
+        return _transvection(h)
     end
-end
-
-function _transvection(h::AbstractVector{GF2})
-    return x -> _transvect!(x, h)
+    h = complement(w - v)
+    return complement! ∘ _transvection(h)
 end
 
 function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
