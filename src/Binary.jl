@@ -26,6 +26,15 @@ function parity_complement!(vec::AbstractVector{GF2})
     return vec
 end
 
+function parity_complement(M::AbstractMatrix{GF2})
+    return mapslices(parity_complement, M, dims=1)
+end
+
+function parity_complement!(M::AbstractMatrix{GF2})
+    mapslices(parity_complement!, M, dims=1)
+    return M
+end
+
 function bitvec(n::Integer, len::Integer)
     @assert n >= 0
     @assert len > 0
