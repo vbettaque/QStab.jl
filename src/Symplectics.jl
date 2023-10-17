@@ -51,6 +51,14 @@ end
 
 ⊼(x::AbstractVecOrMat{GF2}, y::AbstractVecOrMat{GF2}) = inner_majorana(x, y)
 
+function is_pauli(A::AbstractMatrix{GF2})
+
+end
+
+function is_majorana(A::AbstractMatrix{GF2})
+    
+end
+
 function _transvect!(M::AbstractMatrix{GF2}, h::AbstractVector{GF2})
     return copyto!(M, M + h * transpose(M ∧ h))
 end

@@ -1,6 +1,6 @@
 module QStab
 
-export Symplectics, Orthogonals, GF2, Binary
+export Symplectics, Orthogonals, GF2, Binary, Cliffords
 
 include("Utils.jl")
 include("Binary.jl")
