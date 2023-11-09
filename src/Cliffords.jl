@@ -5,7 +5,7 @@ using ..Binary
 using LinearAlgebra
 using ..Utils
 
-export Clifford, I, tensor, ⊗
+export Clifford, Pauli, Majorana, I, tensor, ⊗
 
 IntOrGF2 = Union{Integer, GF2}
 
@@ -13,7 +13,7 @@ IntOrGF2 = Union{Integer, GF2}
 
 struct Clifford{T,N}
     _M::Matrix{GF2}
-    function Clifford{T,N}(M::AbstractMatrix{GF2}) where N
+    function Clifford{T,N}(M::AbstractMatrix{GF2}) where {T,N}
         @assert T isa CliffordType
         @assert N isa Integer
         @assert iseven(N)
@@ -24,8 +24,8 @@ struct Clifford{T,N}
     end
 end
 
-function Clifford{N}(U::UniformScaling{<:IntOrGF2}) where N
-    return Clifford{N}(GF2.(U(N)))
+function Clifford{T,N}(U::UniformScaling{<:IntOrGF2}) where {T,N}
+    return Clifford{T,N}(GF2.(U(N)))
 end
 
 function Clifford(M::AbstractMatrix{<:IntOrGF2})

@@ -52,11 +52,13 @@ end
 ⊼(x::AbstractVecOrMat{GF2}, y::AbstractVecOrMat{GF2}) = inner_majorana(x, y)
 
 function is_pauli(A::AbstractMatrix{GF2})
-
+    n = size(A, 1)
+    return A ∧ A == product_form_pauli(n)
 end
 
 function is_majorana(A::AbstractMatrix{GF2})
-    
+    n = size(A, 1)
+    return A ⊼ A == product_form_majorana(n)
 end
 
 function _transvect!(M::AbstractMatrix{GF2}, h::AbstractVector{GF2})
@@ -174,6 +176,16 @@ end
 function indexed_element_majorana(n::Integer, i::Integer)
     @assert iseven(n) && n > 0
     return indexed_element_majorana!(Matrix{GF2}(I, n, n), i)
+end
+
+function rand_pauli(n::Integer, rng = Random.default_rng())
+    i = Random.rand(rng, 1:group_order(n))
+    return indexed_element_pauli(n, i)
+end
+
+function rand_majorana(n::Integer, rng = Random.default_rng())
+    i = Random.rand(rng, 1:group_order(n))
+    return indexed_element_majorana(n, i)
 end
 
 end
