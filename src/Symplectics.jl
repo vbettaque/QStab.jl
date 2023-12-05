@@ -1,7 +1,8 @@
 module Symplectics
 
-using ..Binary
+using Random
 using LinearAlgebra
+using ..Binary
 
 function group_order(n::Integer)
     @assert iseven(n) && n > 0

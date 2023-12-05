@@ -2,7 +2,8 @@ module Binary
 
 using GaloisFields
 
-export GF2, parity, complement, complement!, parity_complement, parity_complement!, bitvec, indexed_odd_bitvec
+export GF2, parity, complement, complement!, parity_complement, parity_complement!, bitvec,
+    indexed_odd_bitvec
 
 const GF2 = @GaloisField 2
 
