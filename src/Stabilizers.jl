@@ -1,6 +1,6 @@
 module Stabilizers
 
-using LinearAlgebra
+using Random, Combinatorics, LinearAlgebra
 using ..Binary, ..Orthogonals, ..Symplectics, ..Utils
 
 export canon_stab_matrix, rand_stab_matrix, entangled_stab_matrix, weight_pauli, weight_majorana, entropy, mutual_info, stab_subgroup
@@ -85,12 +85,23 @@ function code_distance(code_cliff, k)
     init_stab = canon_stab_matrix(n-k) ⊕ entangled_stab_matrix(k)
     stab = init_stab * (code_cliff' ⊕ Matrix{GF2}(I, k, k))
     R = (n+1):(n+k)
-
+    
     d_max = n - k + 2
 
     for d in (d_max-2):-2:2
-
+        subsets = Combinatorics.combinations(1:n, d)
+        non_zero_info = false
+        for A in subsets
+            info_AR = mutual_info(stab, A, R)
+            if info_AR > 0
+                non_zero_info = true
+                break  
+            end
+        end
+        !non_zero_info && return d + 2
     end
+
+    return 2
 end
 
 end
