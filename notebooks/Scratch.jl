@@ -284,3 +284,35 @@ end
 
 n=4
 frame(3, 10; max_reps = 10000)
+function single_clifford_distance()
+    reps = 100000
+    n_mc = 1000
+    ns = 18:2:64
+    k = 2
+
+    for n in ns
+        println("n = ", n)
+
+        data = zeros(Int, 2, reps)
+
+        Threads.@threads for i in 1:reps
+            O = Orthogonals.rand(n)
+            S = Symplectics.rand_majorana(n)
+
+            data[1, i] = code_distance(O, k, mc_max = n_mc)
+            data[2, i] = code_distance(S, k, mc_max = n_mc)
+        end
+
+        filename = "distance_n" * string(n) * "k" * string(k) * "mc" * string(n_mc) * "r" * string(reps) * ".csv"
+        path = "/home/vbettaque/Development/QStab.jl/data/single_clifford/distance/k" * string(k) * "/"
+        !ispath(path) && mkpath(path)
+
+        labels = ["Ortho", "Symp"]
+
+        frame = DataFrame(data', labels)
+        CSV.write(path * filename, frame)
+    end
+
+end
+
+single_clifford_distance()

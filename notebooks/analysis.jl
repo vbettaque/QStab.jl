@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.32
+# v0.19.29
 
 using Markdown
 using InteractiveUtils
@@ -9,6 +9,7 @@ begin
 	using CSV
 	using DataFrames
 	using Plots
+	using Statistics
 end
 
 # ╔═╡ 817076bf-fa36-464e-b3a5-9bfc8045394e
@@ -56,12 +57,34 @@ begin
 	histogram!(data_stab[!, 17], bins = b_range, normalize=:pdf, label="Symp RREF", alpha=0.6)
 end
 
+# ╔═╡ 3a7a3644-056f-4d22-8fd4-84bfa35f3c3a
+begin
+	mean_distance_ortho = zeros(23)
+	mean_distance_symp = zeros(23)
+	for n in 4:2:48,
+		path_n = "/home/vbettaque/Development/QStab.jl/data/single_clifford/distance/k2/distance_n" * string(n) * "k2mc1000r100000.csv"
+		data_n = CSV.read("/home/vbettaque/Development/QStab.jl/data/single_clifford/distance/k2/distance_n" * string(n) * "k2mc1000r100000.csv", DataFrame)
+		mean_distance_ortho[n ÷ 2 - 1] = Statistics.mean(data_n[!, 1]) / n
+		mean_distance_symp[n ÷ 2 - 1] = Statistics.mean(data_n[!, 2]) / n 
+	end
+
+	plot(4:2:48, mean_distance_ortho)
+	plot!(4:2:48, mean_distance_symp)
+end
+
+# ╔═╡ 56f7fabe-3129-4058-be3e-737dfddcd07f
+begin
+	path = "/home/vbettaque/Development/QStab.jl/data/single_clifford/distance/k2/distance_n" * string(6) * "k2mc1000r100000.csv"
+	println(path)
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 CSV = "~0.10.11"
@@ -73,9 +96,9 @@ Plots = "~1.39.0"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.4"
+julia_version = "1.9.3"
 manifest_format = "2.0"
-project_hash = "e251fa48661987b3bf38b4f8e1645e9680f58ec5"
+project_hash = "f59d7a955464eb48728eff81791f8ae85c0798e0"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -441,12 +464,12 @@ version = "0.16.1"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
-version = "0.6.4"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "8.4.0+0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -455,7 +478,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
-version = "1.11.0+1"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1186,7 +1209,7 @@ version = "1.1.6+0"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.52.0+1"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -1221,5 +1244,7 @@ version = "1.4.1+1"
 # ╠═c3d0024b-0189-4105-b544-af00e7fe6199
 # ╠═0be00b0a-38a6-4b52-80e7-daabe79c3897
 # ╠═6b50d3d3-5be5-4e11-9909-95d661067459
+# ╠═3a7a3644-056f-4d22-8fd4-84bfa35f3c3a
+# ╠═56f7fabe-3129-4058-be3e-737dfddcd07f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
