@@ -90,7 +90,7 @@ function code_distance(code_cliff, k; mc_max= 0)
 
     for d in (d_max-2):-2:2
         non_zero_info = false
-        if mc_max <= 0 || mc_max >= binomial(n, d)
+        if mc_max <= 0 || mc_max >= try binomial(n, d) catch; binomial(big(n), k) end
             subsets = Combinatorics.combinations(1:n, d)
             for A in subsets
                 info_AR = mutual_info(stab, A, R)

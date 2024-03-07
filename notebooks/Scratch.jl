@@ -249,7 +249,7 @@ end
 function single_clifford_distance()
     reps = 100000
     n_mc = 1000
-    ns = 18:2:64
+    ns = 52:2:128
     k = 2
 
     for n in ns
@@ -277,5 +277,53 @@ function single_clifford_distance()
 
 end
 
-single_clifford_distance()
+function q_local_distance()
+    reps = 100000
+    n_mc = 1000
+    k = 2
+
+    qs = 2:2:4
+
+    Ds = 1:10
+
+    for q in qs
+        ns = (11:30).*q
+
+        println("q = ", q)
+
+        for n in ns
+
+            if n <= k continue end
+
+            println("n = ", n)
+
+            for D in Ds
+
+                println("D = ", D)
+
+                data = zeros(Int, 1, reps)
+
+                Threads.@threads for i in 1:reps
+                    O = rand_q_local_volume(n, q, D, Orthogonals.rand)
+
+                    data[1, i] = code_distance(O, k, mc_max = n_mc)
+                end
+
+                filename = "distance_n" * string(n) * "r" * string(reps) * ".csv"
+                path = "/home/vbettaque/Development/QStab.jl/data/q_local/stabilizer/q" * string(q) * "/D" * string(D) * "/"
+                !ispath(path) && mkpath(path)
+
+                frame = DataFrame(data', ["Ortho"])
+                CSV.write(path * filename, frame)
+            end
+
+            println("")
+
+        end
+
+    end
+
+end
+
+q_local_distance()
 
