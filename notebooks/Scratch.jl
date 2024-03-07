@@ -326,43 +326,34 @@ function q_local_distance()
 
 end
 
-q_local_distance()
+function frame_potentials(n, t_max; max_reps = -1)
+    data = zeros(t_max, 5)
 
+    for t=1:t_max
+        unitary = factorial(t)
+        symp = FramePotential.symplectic(t, n; max_reps = max_reps)
+        ortho = FramePotential.orthogonal(t, n; max_reps = max_reps)
+        ortho_even = FramePotential.orthogonal_even(t, n; with_pcheck = false, max_reps = max_reps)
+        ortho_even_pcheck = FramePotential.orthogonal_even(t, n; with_pcheck = true, max_reps = max_reps)
 
-FramePotential.even_parity(1, 10; with_pcheck=false, max_reps = 10000) * 2
-
-# generate_data()
-
-using LinearAlgebra
-
-function block_diagonal(ortho::AbstractMatrix{GF2})
-    n, ncols = size(ortho)
-    @assert ncols == n
-    @assert ortho' * ortho == I
-
-    r_basis = Matrix{GF2}(I, n, n)
-    r_basis[2:n, 1:(n-1)] += I
-
-    l_basis = LowerTriangular(ones(GF2, n, n))
-
-   return l_basis * ortho * r_basis
-end
-
-function frame(t::Integer, n::Integer; max_reps=-1)
-    @assert t > 0
-    @assert n > 0 && iseven(n)
-
-    reps = max_reps > 0 ? max_reps : Symplectics.group_order(n)
-    mean = 0
-
-    for k=1:reps
-        ortho = max_reps > 0 ? Symplectics.rand_pauli(n) : Symplectics.indexed_element_pauli(n, k)
-        fixed_points = 2^(n - Binary.rank(ortho - I))
-        mean += (fixed_points^(t-1) - mean) / k
+        data[t, :] = [unitary symp ortho ortho_even ortho_even_pcheck]
     end
 
-    return mean
+    frame = DataFrame(data, ["Unitary", "Symplectic", "Orthogonal", "Orthogonal (Even)", "Orthogonal (Even, p-Check)"])
+
+    filename = "frame_n" * string(n) * "t" * string(t_max) * (max_reps > 0 ? "r"*string(max_reps) : "")* ".csv"
+
+    path = "/home/vbettaque/Development/QStab.jl/data/frame_potential/"
+    !ispath(path) && mkpath(path)
+
+    CSV.write(path * filename, frame)
 end
 
-n=4
-frame(3, 10; max_reps = 10000)
+frame_potentials(6, 10; max_reps = -1)
+
+# q_local_distance()
+
+
+#FramePotential.even_parity(1, 10; with_pcheck=false, max_reps = 10000) * 2
+
+# generate_data()
