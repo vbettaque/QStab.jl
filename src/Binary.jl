@@ -1,9 +1,11 @@
 module Binary
 
-using GaloisFields
+using GaloisFields, LinearAlgebra
+
+using ..Utils
 
 export GF2, parity, complement, complement!, parity_complement, parity_complement!, bitvec,
-    indexed_odd_bitvec
+    indexed_odd_bitvec, rank
 
 const GF2 = @GaloisField 2
 
@@ -54,6 +56,13 @@ function indexed_odd_bitvec(i::Integer, len::Integer)
     vec[1] = GF2(count_ones(n) + 1)
     vec[2:len] = bitvec(n, len - 1)
     return vec
+end
+
+function rank(M::AbstractMatrix{GF2})
+    n, _ = size(M)
+    M_rref = rref(M)
+    non_zero = [!iszero(M_rref[i, :]) for i=1:n]
+    return reduce(+, non_zero; init = 0)
 end
 
 end

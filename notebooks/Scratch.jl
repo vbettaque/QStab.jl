@@ -2,7 +2,7 @@ using DataFrames
 using CSV
 
 using QStab
-using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Binary, QStab.Utils, QStab.Circuits
+using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Binary, QStab.Utils, QStab.Circuits, QStab.FramePotential
 
 function single_clifford_single_string_data()
     reps = 100000
@@ -236,6 +236,7 @@ function q_local_stabilizer_data()
                 frame = DataFrame(data', labels)
                 CSV.write(path * filename, frame)
 
+
                 println("")
 
             end
@@ -327,3 +328,41 @@ end
 
 q_local_distance()
 
+
+FramePotential.even_parity(1, 10; with_pcheck=false, max_reps = 10000) * 2
+
+# generate_data()
+
+using LinearAlgebra
+
+function block_diagonal(ortho::AbstractMatrix{GF2})
+    n, ncols = size(ortho)
+    @assert ncols == n
+    @assert ortho' * ortho == I
+
+    r_basis = Matrix{GF2}(I, n, n)
+    r_basis[2:n, 1:(n-1)] += I
+
+    l_basis = LowerTriangular(ones(GF2, n, n))
+
+   return l_basis * ortho * r_basis
+end
+
+function frame(t::Integer, n::Integer; max_reps=-1)
+    @assert t > 0
+    @assert n > 0 && iseven(n)
+
+    reps = max_reps > 0 ? max_reps : Symplectics.group_order(n)
+    mean = 0
+
+    for k=1:reps
+        ortho = max_reps > 0 ? Symplectics.rand_pauli(n) : Symplectics.indexed_element_pauli(n, k)
+        fixed_points = 2^(n - Binary.rank(ortho - I))
+        mean += (fixed_points^(t-1) - mean) / k
+    end
+
+    return mean
+end
+
+n=4
+frame(3, 10; max_reps = 10000)
