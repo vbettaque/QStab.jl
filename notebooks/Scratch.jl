@@ -236,6 +236,7 @@ function q_local_stabilizer_data()
                 frame = DataFrame(data', labels)
                 CSV.write(path * filename, frame)
 
+
                 println("")
 
             end
