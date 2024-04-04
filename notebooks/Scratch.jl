@@ -1,6 +1,7 @@
 using DataFrames
 using CSV
 
+using LinearAlgebra
 using QStab
 using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Binary, QStab.Utils, QStab.Circuits, QStab.FramePotential
 
@@ -283,12 +284,12 @@ function q_local_distance()
     n_mc = 1000
     k = 2
 
-    qs = 2:2:4
+    qs = 4:2:4
 
     Ds = 1:10
 
     for q in qs
-        ns = (11:30).*q
+        ns = (22:30).*q
 
         println("q = ", q)
 
@@ -349,11 +350,19 @@ function frame_potentials(n, t_max; max_reps = -1)
     CSV.write(path * filename, frame)
 end
 
-frame_potentials(6, 10; max_reps = -1)
+# frame_potentials(6, 10; max_reps = -1)
 
-# q_local_distance()
+#q_local_distance()
 
 
 #FramePotential.even_parity(1, 10; with_pcheck=false, max_reps = 10000) * 2
 
 # generate_data()
+
+N = 5
+for i=1:Orthogonals.group_order(N)
+    O = Orthogonals.new_indexed_element(N, i)
+    display(O)
+    display(O' * O)
+    @assert(O' * O == I)
+end

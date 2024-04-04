@@ -5,12 +5,15 @@ using LinearAlgebra
 using Random
 
 function group_order(n::Integer)
-    @assert iseven(n) && n > 0
+    @assert n > 0
 
     m = n ÷ 2
     order = (big"2")^(m^2)
     for i in 1:(m-1)
         order *= ((big"4")^i - 1)
+    end
+    if isodd(n) && n > 1
+        order *= ((big"4")^m - 1)
     end
     return order
 end
@@ -24,12 +27,25 @@ function _transvection(h::AbstractVector{GF2})
 end
 
 function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
-    if iszero(v ⋅ w)
+    if iszero(v ⋅ w) || v == w
         h = w - v
         return _transvection(h)
     end
-    h = complement(w - v)
-    return complement! ∘ _transvection(h)
+    n = length(v)
+    if iseven(n)
+        h = complement(w - v)
+        return complement! ∘ _transvection(h)
+    end
+
+    h = ones(GF2, n)
+    for i=1:n
+        if iszero(v[i]) && iszero(w[i])
+            h[i] = 0
+            break
+        end
+    end
+
+    
 end
 
 function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
@@ -74,6 +90,42 @@ function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
     end
 
     return t1!(t2!(M))
+end
+
+function new_indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
+    n, ncols = size(M)
+    @assert ncols == n
+    @assert n > 0
+
+    order = group_order(n)
+    @assert 1 <= i <= order
+
+    M == I || copyto!(M, I)
+
+    p = (big"2")^(n - 1) - isodd(n) # Number of odd-parity vectors v1 of length n
+
+    if order == 1
+        return M
+    else
+        i_rec = (i - 1) ÷ p + 1
+        new_indexed_element!(view(M, 2:n, 2:n), i_rec)
+    end
+
+    i_p = (i - 1) % p + 1
+
+    e = view(M, :, 1)
+
+    f = indexed_odd_bitvec(i_p, n)
+    display(f)
+
+    t! = _transvection(e, f)
+
+    return t!(M)
+end
+
+function new_indexed_element(n::Integer, i::Integer)
+    @assert n > 0
+    return new_indexed_element!(Matrix{GF2}(I, n, n), i)
 end
 
 function indexed_element(n::Integer, i::Integer)
