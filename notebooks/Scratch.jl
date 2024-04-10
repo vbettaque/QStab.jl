@@ -359,10 +359,9 @@ end
 
 # generate_data()
 
-N = 5
+N = 2
 for i=1:Orthogonals.group_order(N)
-    O = Orthogonals.new_indexed_element(N, i)
+    O = Orthogonals.indexed_element(N, i)
     display(O)
-    display(O' * O)
     @assert(O' * O == I)
 end

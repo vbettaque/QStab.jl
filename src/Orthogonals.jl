@@ -27,10 +27,14 @@ function _transvection(h::AbstractVector{GF2})
 end
 
 function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
+    @assert length(v) == length(w)
+    @assert isone(parity(v)) && isone(parity(w))
+
     if iszero(v ⋅ w) || v == w
         h = w - v
         return _transvection(h)
     end
+
     n = length(v)
     if iseven(n)
         h = complement(w - v)
@@ -41,58 +45,64 @@ function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     for i=1:n
         if iszero(v[i]) && iszero(w[i])
             h[i] = 0
-            break
+            return _transvection(w - v - h) ∘ _transvection(h)
         end
     end
 
-    
+    h = zeros(GF2, n)
+    v_minus = v - v .* w
+    w_minus = w - v .* w
+    h[findfirst(isone, v_minus)] = 1
+    h[findfirst(isone, w_minus)] = 1
+
+    return _transvection(w - v - h) ∘ _transvection(h)
 end
+
+# function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
+#     n, ncols = size(M)
+#     @assert ncols == n
+#     @assert iseven(n)
+
+#     order = group_order(n)
+#     @assert 1 <= i <= order
+
+#     M == I || copyto!(M, I)
+
+#     p1 = (big"2")^(n - 1) # Number of odd-parity vectors v1 of length n
+#     p2 = (big"2")^(n - 2) - 1 # Number of odd-parity vectors v2 of length n orthogonal to v1
+
+#     if order == 2
+#         isone(i) || complement!(M)
+#         return M
+#     else
+#         i_rec = (i - 1) ÷ (p1 * p2) + 1
+#         indexed_element!(view(M, 3:n, 3:n), i_rec)
+#     end
+
+#     i1 = (i - 1) % p1 + 1
+#     i2 = ((i - 1) ÷ p1) % p2 + 1
+
+#     e1 = view(M, :, 1)
+#     e2 = view(M, :, 2)
+
+#     f1 = indexed_odd_bitvec(i1, n)
+#     f2 = vcat(GF2(0), indexed_odd_bitvec(i2, n - 1))
+
+#     t1! = _transvection(e1, f1)
+#     t2! = if iszero(f2[2])
+#         h = e2 + f2
+#         _transvection(h)
+#     else
+#         h1 = copy(e2); h2 = copy(f2)
+#         j = findfirst(iszero, f2[3:end]) + 2
+#         h1[j] = GF2(1); h2[j] = GF2(1)
+#         _transvection(h2) ∘ _transvection(h1)
+#     end
+
+#     return t1!(t2!(M))
+# end
 
 function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
-    n, ncols = size(M)
-    @assert ncols == n
-    @assert iseven(n)
-
-    order = group_order(n)
-    @assert 1 <= i <= order
-
-    M == I || copyto!(M, I)
-
-    p1 = (big"2")^(n - 1) # Number of odd-parity vectors v1 of length n
-    p2 = (big"2")^(n - 2) - 1 # Number of odd-parity vectors v2 of length n orthogonal to v1
-
-    if order == 2
-        isone(i) || complement!(M)
-        return M
-    else
-        i_rec = (i - 1) ÷ (p1 * p2) + 1
-        indexed_element!(view(M, 3:n, 3:n), i_rec)
-    end
-
-    i1 = (i - 1) % p1 + 1
-    i2 = ((i - 1) ÷ p1) % p2 + 1
-
-    e1 = view(M, :, 1)
-    e2 = view(M, :, 2)
-
-    f1 = indexed_odd_bitvec(i1, n)
-    f2 = vcat(GF2(0), indexed_odd_bitvec(i2, n - 1))
-
-    t1! = _transvection(e1, f1)
-    t2! = if iszero(f2[2])
-        h = e2 + f2
-        _transvection(h)
-    else
-        h1 = copy(e2); h2 = copy(f2)
-        j = findfirst(iszero, f2[3:end]) + 2
-        h1[j] = GF2(1); h2[j] = GF2(1)
-        _transvection(h2) ∘ _transvection(h1)
-    end
-
-    return t1!(t2!(M))
-end
-
-function new_indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
     n, ncols = size(M)
     @assert ncols == n
     @assert n > 0
@@ -102,13 +112,13 @@ function new_indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
 
     M == I || copyto!(M, I)
 
-    p = (big"2")^(n - 1) - isodd(n) # Number of odd-parity vectors v1 of length n
+    p = (big"2")^(n - 1) - isodd(n) # Number of odd-parity vectors of length n
 
     if order == 1
         return M
     else
         i_rec = (i - 1) ÷ p + 1
-        new_indexed_element!(view(M, 2:n, 2:n), i_rec)
+        indexed_element!(view(M, 2:n, 2:n), i_rec)
     end
 
     i_p = (i - 1) % p + 1
@@ -116,20 +126,14 @@ function new_indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
     e = view(M, :, 1)
 
     f = indexed_odd_bitvec(i_p, n)
-    display(f)
 
     t! = _transvection(e, f)
 
     return t!(M)
 end
 
-function new_indexed_element(n::Integer, i::Integer)
-    @assert n > 0
-    return new_indexed_element!(Matrix{GF2}(I, n, n), i)
-end
-
 function indexed_element(n::Integer, i::Integer)
-    @assert iseven(n) && n > 0
+    @assert n > 0
     return indexed_element!(Matrix{GF2}(I, n, n), i)
 end
 
