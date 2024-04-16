@@ -5,7 +5,7 @@ using GaloisFields, LinearAlgebra
 using ..Utils
 
 export GF2, parity, complement, complement!, parity_complement, parity_complement!, bitvec,
-    indexed_odd_bitvec, rank
+    indexed_even_bitvec, indexed_odd_bitvec, rank
 
 const GF2 = @GaloisField 2
 
@@ -45,6 +45,17 @@ function bitvec(n::Integer, len::Integer)
     vec = zeros(Integer, len)
     digits!(vec, n, base=2)
     return GF2.(vec)
+end
+
+function indexed_even_bitvec(i::Integer, len::Integer)
+    @assert len > 1
+    @assert 1 <= i <= (big"2")^(len - 1)
+
+    n = i - 1
+    vec = zeros(GF2, len)
+    vec[1] = GF2(count_ones(n))
+    vec[2:len] = bitvec(n, len - 1)
+    return vec
 end
 
 function indexed_odd_bitvec(i::Integer, len::Integer)

@@ -18,34 +18,65 @@ function group_order(n::Integer)
     return order
 end
 
-function _transvect!(M::AbstractMatrix{GF2}, h::AbstractVector{GF2})
+function _householder!(M::AbstractMatrix{GF2}, h::AbstractVector{GF2})
     return copyto!(M, M + h * (transpose(h) * M))
 end
 
-function _transvection(h::AbstractVector{GF2})
-    return x -> _transvect!(x, h)
-end
+# function _transvection(h::AbstractVector{GF2})
+#     return x -> _transvect!(x, h)
+# end
 
-function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
+# function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
+#     @assert length(v) == length(w)
+#     @assert isone(parity(v)) && isone(parity(w))
+
+#     if iszero(v ⋅ w) || v == w
+#         h = w - v
+#         return _transvection(h)
+#     end
+
+#     n = length(v)
+#     if iseven(n)
+#         h = complement(w - v)
+#         return complement! ∘ _transvection(h)
+#     end
+
+#     h = ones(GF2, n)
+#     for i=1:n
+#         if iszero(v[i]) && iszero(w[i])
+#             h[i] = 0
+#             return _transvection(w - v - h) ∘ _transvection(h)
+#         end
+#     end
+
+#     h = zeros(GF2, n)
+#     v_minus = v - v .* w
+#     w_minus = w - v .* w
+#     h[findfirst(isone, v_minus)] = 1
+#     h[findfirst(isone, w_minus)] = 1
+
+#     return _transvection(w - v - h) ∘ _transvection(h)
+# end
+
+function _householder_vector(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     @assert length(v) == length(w)
     @assert isone(parity(v)) && isone(parity(w))
 
     if iszero(v ⋅ w) || v == w
-        h = w - v
-        return _transvection(h)
+        return (w - v, nothing)
     end
 
     n = length(v)
     if iseven(n)
         h = complement(w - v)
-        return complement! ∘ _transvection(h)
+        return (h, ones(GF2, n))
     end
 
     h = ones(GF2, n)
     for i=1:n
         if iszero(v[i]) && iszero(w[i])
             h[i] = 0
-            return _transvection(w - v - h) ∘ _transvection(h)
+            return (h, w - v - h)
         end
     end
 
@@ -55,7 +86,7 @@ function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     h[findfirst(isone, v_minus)] = 1
     h[findfirst(isone, w_minus)] = 1
 
-    return _transvection(w - v - h) ∘ _transvection(h)
+    return (h, w - v - h)
 end
 
 # function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
@@ -102,6 +133,56 @@ end
 #     return t1!(t2!(M))
 # end
 
+# function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
+#     n, ncols = size(M)
+#     @assert ncols == n
+#     @assert n > 0
+
+#     order = group_order(n)
+#     @assert 1 <= i <= order
+
+#     M == I || copyto!(M, I)
+
+#     p = (big"2")^(n - 1) - isodd(n) # Number of odd-parity vectors of length n
+
+#     if order == 1
+#         return M
+#     else
+#         i_rec = (i - 1) ÷ p + 1
+#         indexed_element!(view(M, 2:n, 2:n), i_rec)
+#     end
+
+#     i_p = (i - 1) % p + 1
+
+#     e = view(M, :, 1)
+
+#     f = indexed_odd_bitvec(i_p, n)
+
+#     t! = _transvection(e, f)
+
+#     return t!(M)
+# end
+
+function indexed_element_householders(n::Integer, i::Integer)
+    @assert n > 0
+
+    hs = []
+    i_k = i
+    for k=2:n
+        p = (big"2")^(k - 1) - isodd(k)
+        i_p = (i_k - 1) % p + 1
+        e = zeros(GF2, k); e[1] = 1
+        f = indexed_odd_bitvec(i_p, k)
+        h1, h2 = _householder_vector(e, f)
+        push!(hs, [zeros(GF2, n-k); h1])
+        if !isnothing(h2)
+            push!(hs, [zeros(GF2, n-k); h2])
+        end
+        i_k = (i_k - 1) ÷ p + 1
+    end
+    return hs
+end
+
 function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
     n, ncols = size(M)
     @assert ncols == n
@@ -112,24 +193,11 @@ function indexed_element!(M::AbstractMatrix{GF2}, i::Integer)
 
     M == I || copyto!(M, I)
 
-    p = (big"2")^(n - 1) - isodd(n) # Number of odd-parity vectors of length n
-
-    if order == 1
-        return M
-    else
-        i_rec = (i - 1) ÷ p + 1
-        indexed_element!(view(M, 2:n, 2:n), i_rec)
+    hs = indexed_element_householders(n, i)
+    for h in hs
+        _householder!(M, h)
     end
-
-    i_p = (i - 1) % p + 1
-
-    e = view(M, :, 1)
-
-    f = indexed_odd_bitvec(i_p, n)
-
-    t! = _transvection(e, f)
-
-    return t!(M)
+    return M
 end
 
 function indexed_element(n::Integer, i::Integer)
