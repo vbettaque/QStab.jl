@@ -1,6 +1,7 @@
 using DataFrames
 using CSV
 
+using Random
 using LinearAlgebra
 using QStab
 using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Binary, QStab.Utils, QStab.Circuits, QStab.FramePotential, QStab.Hilbert
@@ -327,30 +328,49 @@ function q_local_distance()
 
 end
 
-function frame_potentials(n, t_max; max_reps = -1)
-    data = zeros(t_max, 5)
+function even_frame_potentials(n_max, t_max; max_reps = -1)
+    @assert iseven(n_max) && n_max > 2
 
-    for t=1:t_max
-        unitary = factorial(t)
-        symp = FramePotential.symplectic(t, n; max_reps = max_reps)
-        ortho = FramePotential.orthogonal(t, n; max_reps = max_reps)
-        ortho_even = FramePotential.orthogonal_even(t, n; with_pcheck = false, max_reps = max_reps)
-        ortho_even_pcheck = FramePotential.orthogonal_even(t, n; with_pcheck = true, max_reps = max_reps)
+    unit_data = zeros(t_max, n_max÷2-1)
+    cliff_data = zeros(t_max, n_max÷2-1)
+    pcliff_data = zeros(t_max, n_max÷2-1)
 
-        data[t, :] = [unitary symp ortho ortho_even ortho_even_pcheck]
+
+    for n=4:2:n_max
+        println("n = ", n)
+        for t=1:t_max
+            println("t = ", t)
+            unit_data[t, n÷2-1] = FramePotential.unitary(t, 2^(n÷2-1))
+            cliff_data[t, n÷2-1] = round(FramePotential.clifford_symp(t, n-2; max_reps=max_reps), digits=2)
+            pcliff_data[t, n÷2-1] = round(FramePotential.pclifford_hilbert(t, n; max_reps=max_reps), digits=2)
+        end
+        println("")
     end
+    
+    labels_unit = map(n -> "d = " * string(2^(n÷2)), 4:2:n_max)
+    labels_cliff = map(n -> "n = " * string(n), 4:2:n_max)
 
-    frame = DataFrame(data, ["Unitary", "Symplectic", "Orthogonal", "Orthogonal (Even)", "Orthogonal (Even, p-Check)"])
+    unit_frame = DataFrame(unit_data, labels_unit)
+    cliff_frame = DataFrame(cliff_data, labels_cliff)
+    pcliff_frame = DataFrame(pcliff_data, labels_cliff)
 
-    filename = "frame_n" * string(n) * "t" * string(t_max) * (max_reps > 0 ? "r"*string(max_reps) : "")* ".csv"
+    filename_unit = "unitary_d" * string(2^(n_max÷2)) * "t" * string(t_max) * ".csv"
+    filename_cliff = "clifford_n" * string(n_max) * "t" * string(t_max) * (max_reps > 0 ? "r"*string(max_reps) : "")* ".csv"
+    filename_pcliff = "pclifford_n" * string(n_max) * "t" * string(t_max) * (max_reps > 0 ? "r"*string(max_reps) : "")* ".csv"
 
-    path = "/home/vbettaque/Development/QStab.jl/data/frame_potential/"
+    path = "/home/vbettaque/Development/QStab.jl/data/frame_potential/even/"
     !ispath(path) && mkpath(path)
 
-    CSV.write(path * filename, frame)
+    CSV.write(path * filename_unit, unit_frame)
+    CSV.write(path * filename_cliff, cliff_frame)
+    CSV.write(path * filename_pcliff, pcliff_frame)
 end
 
-# frame_potentials(6, 10; max_reps = -1)
+FramePotential.pclifford_hilbert(3, 8; max_reps=1000000)
+
+x = 1
+
+# even_frame_potentials(6, 10; max_reps = -1)
 
 #q_local_distance()
 
@@ -371,72 +391,25 @@ end
 # U = Hilbert.indexed_pclifford(4, 10)
 # O = Orthogonals.indexed_element(4, 10)
 
-N = 4
-proj_even = (I + Hilbert.majorana_string(ones(GF2, N))) / 2
-println("start")
-for i=1:Orthogonals.group_order(N)
-    O = Orthogonals.indexed_element(N, i)
-    O_even = FramePotential.even_parity_sector_matrix(O)
-    U = Hilbert.indexed_pclifford(N, i)
-    trace = Int(round(abs(tr(proj_even * U)^2)))
-    fixed = 2^(N - 1 - Binary.rank(O_even - I)) ÷ 2
-    println(trace, " ", fixed)
-    if trace != fixed
-        display(O)
-    end
-end
+# N = 4
+# proj_even = (I + Hilbert.majorana_string(ones(GF2, N))) / 2
+# println("start")
+# for i=1:Orthogonals.group_order(N)
+#     O = Orthogonals.indexed_element(N, i)
+#     O_even = FramePotential.even_parity_sector_matrix(O)
+#     U = Hilbert.indexed_pclifford(N, i)
+#     trace = Int(round(abs(tr(proj_even * U)^2)))
+#     fixed = 2^(N - 1 - Binary.rank(O_even - I)) ÷ 2
+#     println(trace, " ", fixed)
+#     if trace != fixed
+#         display(O)
+#     end
+# end
 
-function tdesign(t::Integer, n::Integer)
-    @assert t > 0
-    @assert n > 0 && iseven(n)
-
-    ortho_order = Orthogonals.group_order(n)
-    majo_order = (big"2")^(n - 1)
-
-    mean = 0
-
-    for i=1:ortho_order
-        mean_majo = 0
-        for j=1:majo_order
-            U = Hilbert.majorana_string(Binary.indexed_even_bitvec(j, n)) * Hilbert.indexed_pclifford(n, i)
-            trace = round(abs(tr(U))^(2 * t))
-            display(trace)
-            mean_majo += (trace - mean_majo) / j
-        end
-        mean += (mean_majo - mean) / i
-    end
-
-    return mean
-end
-
-function tdesign_even(t::Integer, n::Integer)
-    @assert t > 0
-    @assert n > 0 && iseven(n)
-
-    ortho_order = Orthogonals.group_order(n)
-    majo_order = (big"2")^(n - 1)
-
-    mean = 0
-
-    proj_even = (I + Hilbert.majorana_string(ones(GF2, n))) / 2
-
-    for i=1:ortho_order
-        mean_majo = 0
-        for j=1:majo_order
-            U = Hilbert.majorana_string(Binary.indexed_even_bitvec(j, n)) * Hilbert.indexed_pclifford(n, i)
-            trace = round(abs(tr(proj_even * U))^(2 * t))
-            mean_majo += (trace - mean_majo) / j
-        end
-        mean += (mean_majo - mean) / i
-    end
-
-    return mean
-end
-
-n = 4
-for t=1:10
-    println("t = ", t)
-    println("cliff: ", tdesign_even(t, n))
-    # println("haar: ", factorial(2*t) / ( factorial(t) * factorial(t+1)))
-    println("haar: ", factorial(t))
-end
+# n = 8
+# for t=1:10
+#     println("t = ", t)
+#     println("cliff: ", tdesign_even(t, n, 1000000))
+#     # println("haar: ", factorial(2*t) / ( factorial(t) * factorial(t+1)))
+#     println("haar: ", factorial(t))
+# end

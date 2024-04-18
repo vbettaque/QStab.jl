@@ -1,5 +1,6 @@
 module Hilbert
 
+using Random
 using LinearAlgebra
 
 using ..Binary
@@ -43,15 +44,25 @@ function braid(v::AbstractVector{GF2})
     return (I + im * majorana_string(v)) / sqrt(2)
 end
 
-function indexed_pclifford(n::Integer, i::Integer)
+function indexed_pclifford(n::Integer, i_ortho::Integer, i_majo::Integer = 1)
     @assert iseven(n) && n > 0
 
     C = I
-    hs = Orthogonals.indexed_element_householders(n, i)
+    hs = Orthogonals.indexed_element_householders(n, i_ortho)
     for h in hs
         C = braid(h) * C
     end
+    C = C * majorana_string(indexed_even_bitvec(i_majo, n))
+
     return C
+end
+
+function rand_pclifford(n::Integer, rng = Random.default_rng())
+    ortho_order = Orthogonals.group_order(n)
+    majo_order = (big"2")^(n - 1)
+    i_ortho = Random.rand(rng, 1:ortho_order)
+    i_majo = Random.rand(rng, 1:majo_order)
+    return indexed_pclifford(n, i_ortho, i_majo)
 end
 
 end
