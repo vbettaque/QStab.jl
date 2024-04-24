@@ -19,25 +19,36 @@ function clifford_symp(t::Integer, n::Integer; max_reps=-1)
     @assert n > 0 && iseven(n)
 
     symp_order = Symplectics.group_order(n)
-    reps = 0 < max_reps < symp_order ? max_reps : symp_order
+
+    full_sample = max_reps <= 0 || max_reps >= symp_order
+
+    reps = full_sample ? symp_order : max_reps
 
     mean = 0
     var = 0
 
     for k=1:reps
-        symp = 0 < max_reps < symp_order ? Symplectics.rand_majorana(n) : Symplectics.indexed_element_majorana(n, k)
+        symp = full_sample ? Symplectics.indexed_element_majorana(n, k) : Symplectics.rand_majorana(n)
         eigenvectors = n - Binary.rank(symp - I)
         fixed_points = 2^eigenvectors
-        
         term = fixed_points^(t-1)
 
-        new_mean = mean + (term - mean) / k
-        var += (term - mean) * (term - new_mean)
-        mean = new_mean
+        if full_sample
+            mean += term
+        else
+            new_mean = mean + (term - mean) / k
+            var += (term - mean) * (term - new_mean)
+            mean = new_mean
+        end
     end
 
-    var /= max_reps
-    err = sqrt(var/max_reps)
+    if full_sample
+        mean = mean / reps
+        err = 0
+    else
+        var /= reps
+        err = sqrt(var/reps)
+    end
 
     return mean, err
 end

@@ -62,6 +62,10 @@ function is_majorana(A::AbstractMatrix{GF2})
     return A ⊼ A == product_form_majorana(n)
 end
 
+function _transvect!(v::AbstractVector{GF2}, h::AbstractVector{GF2})
+    return copyto!(v, v + (v ∧ h)[1, 1] * h)
+end
+
 function _transvect!(M::AbstractMatrix{GF2}, h::AbstractVector{GF2})
     return copyto!(M, M + h * transpose(M ∧ h))
 end
@@ -71,19 +75,25 @@ function _transvection(h::AbstractVector{GF2})
 end
 
 function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
+
     if !iszero(v ∧ w)
         h = w - v
         return _transvection(h)
     end
 
+    if v == w
+        return _transvection(v - w)
+    end
+
     n = length(v)
     u = zeros(GF2, n)
 
+
     for i in 1:2:(n-1)
-        if !iszero(v[i] + v[i+1]) && !iszero(w[i] + w[i+1])
+        if !iszero(v[i:i+1]) && !iszero(w[i:i+1])
             u[i] = v[i] + w[i]
             u[i+1] = v[i+1] + w[i+1]
-            if iszero(u[i] + u[i+1])
+            if iszero(u[i:i+1])
                 u[i+1] = one(GF2)
                 (v[i] != v[i+1]) && (u[i] = one(GF2))
             end
@@ -93,7 +103,7 @@ function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     end
 
     for i in 1:2:(n-1)
-        if !iszero(v[i] + v[i+1]) && iszero(w[i] + w[i+1])
+        if !iszero(v[i:i+1]) && iszero(w[i:i+1])
             if v[i] == v[i+1]
                 u[i+1] = one(GF2)
             else
@@ -105,7 +115,7 @@ function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     end
 
     for i in 1:2:(n-1)
-        if iszero(v[i] + v[i+1]) && !iszero(w[i] + w[i+1])
+        if iszero(v[i:i+1]) && !iszero(w[i:i+1])
             if w[i] == w[i+1]
                 u[i+1] = one(GF2)
             else
@@ -117,6 +127,7 @@ function _transvection(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     end
 
     h1 = u - v; h2 = w - u;
+
     return _transvection(h2) ∘ _transvection(h1)
 end
 
@@ -157,6 +168,7 @@ function indexed_element_pauli!(M::AbstractMatrix{GF2}, i::Integer)
         h2 = copy(e1)
         _transvection(h2) ∘ _transvection(h1)
     end
+
 
     return t1!(t2!(M))
 end

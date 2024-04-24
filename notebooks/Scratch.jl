@@ -341,12 +341,12 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
         for t=1:t_max
             println("t = ", t)
             unit_data[t, n÷2-1] = FramePotential.unitary(t, 2^(n÷2-1))
-            cliff_data[t, n÷2-1] = round(FramePotential.clifford_symp(t, n-2; max_reps=max_reps), digits=2)
-            pcliff_data[t, n÷2-1] = round(FramePotential.pclifford_hilbert(t, n; max_reps=max_reps), digits=2)
+            cliff_data[t, n÷2-1], _ = FramePotential.clifford_symp(t, n-2; max_reps=max_reps)
+            pcliff_data[t, n÷2-1], _ = FramePotential.pclifford_hilbert(t, n; max_reps=max_reps)
         end
         println("")
     end
-    
+
     labels_unit = map(n -> "d = " * string(2^(n÷2)), 4:2:n_max)
     labels_cliff = map(n -> "n = " * string(n), 4:2:n_max)
 
@@ -358,7 +358,7 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
     filename_cliff = "clifford_n" * string(n_max) * "t" * string(t_max) * (max_reps > 0 ? "r"*string(max_reps) : "")* ".csv"
     filename_pcliff = "pclifford_n" * string(n_max) * "t" * string(t_max) * (max_reps > 0 ? "r"*string(max_reps) : "")* ".csv"
 
-    path = "/home/vbettaque/Development/QStab.jl/data/frame_potential/even/"
+    path = "data/frame_potential/even/"
     !ispath(path) && mkpath(path)
 
     CSV.write(path * filename_unit, unit_frame)
@@ -366,11 +366,50 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
     CSV.write(path * filename_pcliff, pcliff_frame)
 end
 
-FramePotential.pclifford_hilbert(3, 8; max_reps=1000000)
+# FramePotential.clifford_symp(3, 6; max_reps=10000)
 
-x = 1
+n = 4
+order = Orthogonals.group_order(n)
+proj_even = (I + Hilbert.majorana_string(ones(GF2, n))) / 2
+for i=1:order
+    cliff = Hilbert.indexed_pclifford(n, i)
+    ortho = Orthogonals.indexed_element(n, i)
+    trace = Int(round(abs(tr(proj_even * cliff)^2)))
 
-# even_frame_potentials(6, 10; max_reps = -1)
+    fixed = 0
+    complements = 0
+
+    for j=1:(big"2")^(n - 1)
+        v = indexed_even_bitvec(j, n)
+        if ortho * v == v
+            fixed += 1
+            # println("fixed: ", v)
+        end
+        if ortho * v == complement(v)
+            complements += 1
+            # println("complement: ", v)
+            println(v, " has ", (-1)^isone(parity(v[2:2:n])))
+        end
+    end
+    (fixed == complements == trace) && display(ortho)
+    println("trace = ", trace, " fixed = ", fixed, " complements = ", complements)
+end
+
+
+# n = 4
+# order = Orthogonals.group_order(n)
+# orthos = Set([])
+# for i=1:order
+#     ortho =  Orthogonals.indexed_element(n, i)
+#     if ortho ∈ orthos
+#         display(ortho)
+#     else
+#         push!(orthos, ortho)
+#     end
+# end
+# println(order, " ", length(orthos))
+
+# even_frame_potentials(10, 10; max_reps = 100000)
 
 #q_local_distance()
 
