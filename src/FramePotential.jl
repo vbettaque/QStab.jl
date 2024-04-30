@@ -2,7 +2,7 @@ module FramePotential
 
 using LinearAlgebra
 
-using ..Binary, ..Symplectics, ..Orthogonals, ..Hilbert
+using ..Binary, ..Symplectics, ..Orthogonals, ..Hilbert, ..Utils
 
 function unitary(t::Integer, d::Integer)
     @assert t > 0
@@ -28,7 +28,8 @@ function clifford_symp(t::Integer, n::Integer; max_reps=-1)
     var = 0
 
     for k=1:reps
-        symp = full_sample ? Symplectics.indexed_element_majorana(n, k) : Symplectics.rand_majorana(n)
+        symp = full_sample ?
+            Symplectics.indexed_element_majorana(n, k) : Symplectics.rand_majorana(n)
         eigenvectors = n - Binary.rank(symp - I)
         fixed_points = 2^eigenvectors
         term = fixed_points^(t-1)
@@ -92,54 +93,70 @@ function pclifford_hilbert(t::Integer, n::Integer; max_reps=-1)
     return mean, err
 end
 
-# function orthogonal(t::Integer, n::Integer; max_reps=-1)
-#     @assert t > 0
-#     @assert n > 0 && iseven(n)
+function pclifford_symp(t::Integer, n::Integer; max_reps=-1)
+    @assert t > 0
+    @assert n > 0 && iseven(n)
 
-#     reps = max_reps > 0 ? max_reps : Orthogonals.group_order(n)
-#     mean = 0
+    ortho_order = Orthogonals.group_order(n)
 
-#     for k=1:reps
-#         ortho = max_reps > 0 ? Orthogonals.rand(n) : Orthogonals.indexed_element(n, k)
-#         eigenvectors = n - Binary.rank(ortho - I)
-#         fixed_points = 2^eigenvectors
-#         mean += (fixed_points^(t-1) - mean) / k
-#     end
+    full_sample = max_reps <= 0 || max_reps >= ortho_order
 
-#     return mean
-# end
+    reps = full_sample ? ortho_order : max_reps
 
-# function even_parity_sector_matrix(ortho::AbstractMatrix{GF2})
-#     n, ncols = size(ortho)
-#     @assert ncols == n
-#     @assert ortho' * ortho == I
+    mean = 0
+    var = 0
 
-#     even_basis = zeros(GF2, n, n-1)
-#     even_basis[1:(n-1), :] += I
-#     even_basis[2:n, :] += I
+    for i=1:reps
 
-#     compl_basis = zeros(GF2, n-1, n)
-#     compl_basis[:, 1:(n-1)] = LowerTriangular(ones(GF2, n-1, n-1))
+        ortho = full_sample ?
+            Orthogonals.indexed_element(n, i) : Orthogonals.rand(n)
+        ortho_reduced = even_parity_sector_matrix(ortho)
+        j_reduced = GF2.([isodd(i) for i=1:(n-1)])
 
-#    return compl_basis * ortho * even_basis
-# end
+        eqs = rref(hcat(ortho_reduced - I, j_reduced))
+        r = Binary.rank(eqs)
+        has_complements = !iszero(eqs[r, 1:(n-1)])
+        r -= !has_complements
 
-# function orthogonal_even(t::Integer, n::Integer; with_pcheck=false, max_reps=-1)
-#     @assert t > 0
-#     @assert n > 0 && iseven(n)
+        eigenvectors = n - r - 1
 
-#     reps = max_reps > 0 ? max_reps : Orthogonals.group_order(n)
-#     mean = 0
+        fixed_complement = (big"2")^(eigenvectors - 1 + has_complements)
 
-#     for k=1:reps
-#         ortho = max_reps > 0 ? Orthogonals.rand(n) : Orthogonals.indexed_element(n, k)
-#         reduced = even_parity_sector_matrix(ortho)
-#         eigenvectors = (n - 1) - Binary.rank(reduced - I)
-#         fixed_points = 2^eigenvectors - (1 - with_pcheck)
-#         mean += (fixed_points^(t-1) - mean) / k
-#     end
+        term = fixed_complement^(t-1)
 
-#     return mean
-# end
+        if full_sample
+            mean += term
+        else
+            new_mean = mean + (term - mean) / i
+            var += (term - mean) * (term - new_mean)
+            mean = new_mean
+        end
+    end
+
+    if full_sample
+        mean = mean / reps
+        err = 0
+    else
+        var /= reps
+        err = sqrt(var/reps)
+    end
+
+    return mean, err
+end
+
+function even_parity_sector_matrix(ortho::AbstractMatrix{GF2})
+    n, ncols = size(ortho)
+    @assert ncols == n
+    @assert ortho' * ortho == I
+
+    even_basis = zeros(GF2, n, n-1)
+    even_basis[1:(n-1), :] += I
+    even_basis[2:n, :] += I
+
+    compl_basis = zeros(GF2, n-1, n)
+    compl_basis[:, 1:(n-1)] = LowerTriangular(ones(GF2, n-1, n-1))
+
+   return compl_basis * ortho * even_basis
+end
 
 end

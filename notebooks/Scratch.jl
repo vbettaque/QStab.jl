@@ -366,34 +366,64 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
     CSV.write(path * filename_pcliff, pcliff_frame)
 end
 
-# FramePotential.clifford_symp(3, 6; max_reps=10000)
-
-n = 4
-order = Orthogonals.group_order(n)
-proj_even = (I + Hilbert.majorana_string(ones(GF2, n))) / 2
-for i=1:order
-    cliff = Hilbert.indexed_pclifford(n, i)
-    ortho = Orthogonals.indexed_element(n, i)
-    trace = Int(round(abs(tr(proj_even * cliff)^2)))
-
-    fixed = 0
-    complements = 0
-
-    for j=1:(big"2")^(n - 1)
-        v = indexed_even_bitvec(j, n)
-        if ortho * v == v
-            fixed += 1
-            # println("fixed: ", v)
-        end
-        if ortho * v == complement(v)
-            complements += 1
-            # println("complement: ", v)
-            println(v, " has ", (-1)^isone(parity(v[2:2:n])))
-        end
-    end
-    (fixed == complements == trace) && display(ortho)
-    println("trace = ", trace, " fixed = ", fixed, " complements = ", complements)
+n = 8
+println("start")
+for t=1:10
+    println("symp: ", FramePotential.clifford_symp(t, n-2; max_reps = 1000000))
+    println("ortho: ", FramePotential.pclifford_symp(t, n; max_reps = 1000000))
+    println("")
 end
+x = 1
+
+
+# n = 6
+# majo_order = (big"2")^(n - 1)
+# ortho = Orthogonals.rand(n)
+
+# ortho_reduced = FramePotential.even_parity_sector_matrix(ortho)
+
+# j_reduced = [GF2(isodd(i)) for i=1:(n-1)]
+
+# eqs = hcat(ortho_reduced-I, j_reduced)
+# display(rref(eqs))
+
+
+# for i=1:majo_order
+#     v = indexed_even_bitvec(i, n)
+#     if ortho * v == complement(v)
+#         println("has complement!")
+#         break
+#     end
+# end
+# println("done")
+
+
+# n = 4
+# order = Orthogonals.group_order(n)
+# proj_even = (I + Hilbert.majorana_string(ones(GF2, n))) / 2
+# for i=1:order
+#     cliff = Hilbert.indexed_pclifford(n, i)
+#     ortho = Orthogonals.indexed_element(n, i)
+#     trace = Int(round(abs(tr(proj_even * cliff)^2)))
+
+#     fixed = 0
+#     complements = 0
+
+#     for j=1:(big"2")^(n - 1)
+#         v = indexed_even_bitvec(j, n)
+#         if ortho * v == v
+#             fixed += 1
+#             # println("fixed: ", v)
+#         end
+#         if ortho * v == complement(v)
+#             complements += 1
+#             # println("complement: ", v)
+#             println(v, " has ", (-1)^isone(parity(v[2:2:n])))
+#         end
+#     end
+#     (fixed == complements == trace) && display(ortho)
+#     println("trace = ", trace, " fixed = ", fixed, " complements = ", complements)
+# end
 
 
 # n = 4
