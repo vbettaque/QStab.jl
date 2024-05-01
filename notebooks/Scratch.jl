@@ -367,13 +367,33 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
 end
 
 n = 8
-println("start")
-for t=1:10
-    println("symp: ", FramePotential.clifford_symp(t, n-2; max_reps = 1000000))
-    println("ortho: ", FramePotential.pclifford_symp(t, n; max_reps = 1000000))
-    println("")
-end
+fixed_points = FramePotential.fixed_points_ortho(n)
+data_frame = DataFrame(x = fixed_points)
+file_name = "orthogonal_n" * string(n)
+path = "data/fixed_points/orthogonal/"
+!ispath(path) && mkpath(path)
+CSV.write(path * file_name, data_frame, header=false)
+
+# n = 6
+# fixed_points = FramePotential.fixed_points_symp(n)
+# data_frame = DataFrame(x = fixed_points)
+# file_name = "symplectic_n" * string(n)
+# path = "data/fixed_points/symplectic/"
+# !ispath(path) && mkpath(path)
+# CSV.write(path * file_name, data_frame, header=false)
+
+# Orthogonals.group_order(8)
+
+# FramePotential.from_fixed_points(fixed_points, 5; exact=true)
 x = 1
+
+# n = 8
+# println("start")
+# for t=1:10
+#     println("symp: ", FramePotential.clifford_symp(t, n-2; max_reps = 1000000))
+#     println("ortho: ", FramePotential.pclifford_symp(t, n; max_reps = 1000000))
+#     println("")
+# end
 
 
 # n = 6

@@ -1,57 +1,88 @@
 module FramePotential
 
-using LinearAlgebra
+using LinearAlgebra, Statistics
 
 using ..Binary, ..Symplectics, ..Orthogonals, ..Hilbert, ..Utils
 
 function unitary(t::Integer, d::Integer)
     @assert t > 0
-
     d == 2 && return factorial(2 * t) / (factorial(t) * factorial(t + 1))
-
     d >= t && return factorial(t)
-
     return -1
 end
 
-function clifford_symp(t::Integer, n::Integer; max_reps=-1)
-    @assert t > 0
+function fixed_points_symp(symp::AbstractMatrix{GF2})
+    n, m = size(symp)
+    @assert iseven(n) && n == m
+
+    kernel_dim = n - Binary.rank(symp - I)
+    return 2^kernel_dim
+end
+
+function fixed_points_symp(n::Integer; max_reps=-1)
     @assert n > 0 && iseven(n)
 
     symp_order = Symplectics.group_order(n)
-
     full_sample = max_reps <= 0 || max_reps >= symp_order
-
     reps = full_sample ? symp_order : max_reps
 
-    mean = 0
-    var = 0
+    fixed_points = zeros(Int, reps)
 
-    for k=1:reps
+    done = Threads.Atomic{Int}(0)
+    Threads.@threads for i=1:reps
         symp = full_sample ?
-            Symplectics.indexed_element_majorana(n, k) : Symplectics.rand_majorana(n)
-        eigenvectors = n - Binary.rank(symp - I)
-        fixed_points = 2^eigenvectors
-        term = fixed_points^(t-1)
-
-        if full_sample
-            mean += term
-        else
-            new_mean = mean + (term - mean) / k
-            var += (term - mean) * (term - new_mean)
-            mean = new_mean
-        end
+            Symplectics.indexed_element_majorana(n, i) : Symplectics.rand_majorana(n)
+        fixed_points[i] = fixed_points_symp(symp)
+        Threads.atomic_add!(done, 1)
+        print(Int(round(done[]/reps * 10000))/100, "% \u001b[1000D")
     end
 
-    if full_sample
-        mean = mean / reps
-        err = 0
-    else
-        var /= reps
-        err = sqrt(var/reps)
+    return fixed_points
+end
+
+function fixed_points_ortho(ortho::AbstractMatrix{GF2})
+    n, m = size(ortho)
+    @assert iseven(n) && n == m
+
+    ortho_reduced = even_parity_sector_matrix(ortho)
+    j_reduced = GF2.([isodd(i) for i=1:(n-1)])
+
+    eqs = rref(hcat(ortho_reduced - I, j_reduced))
+    r = Binary.rank(eqs)
+    has_complements = !iszero(eqs[r, 1:(n-1)])
+    r -= !has_complements
+
+    kernel_dim = n - r - 1
+
+    return 2^(kernel_dim - 1 + has_complements)
+end
+
+function fixed_points_ortho(n::Integer; max_reps=-1)
+    @assert n > 0 && iseven(n)
+
+    ortho_order = Orthogonals.group_order(n)
+    full_sample = max_reps <= 0 || max_reps >= ortho_order
+    reps = full_sample ? ortho_order : max_reps
+
+    fixed_points = zeros(Int, reps)
+
+    done = Threads.Atomic{Int}(0)
+    Threads.@threads for i=1:reps
+        ortho = full_sample ?
+            Orthogonals.indexed_element(n, i) : Orthogonals.rand(n)
+        fixed_points[i] = fixed_points_ortho(ortho)
+        Threads.atomic_add!(done, 1)
+        print(Int(round(done[]/reps * 10000))/100, "% \u001b[1000D")
     end
 
-    return mean, err
+    return fixed_points
+end
+
+function from_fixed_points(fixed_points, t::Integer; exact = false)
+    powers = fixed_points .^ (t-1)
+    pot_mean = mean(powers)
+    pot_std = exact ? 0 : std(powers; mean=pot_mean)
+    return pot_mean, pot_std / sqrt(length(fixed_points))
 end
 
 function pclifford_hilbert(t::Integer, n::Integer; max_reps=-1)
@@ -89,57 +120,6 @@ function pclifford_hilbert(t::Integer, n::Integer; max_reps=-1)
 
     var /= max_reps
     err = sqrt(var/max_reps)
-
-    return mean, err
-end
-
-function pclifford_symp(t::Integer, n::Integer; max_reps=-1)
-    @assert t > 0
-    @assert n > 0 && iseven(n)
-
-    ortho_order = Orthogonals.group_order(n)
-
-    full_sample = max_reps <= 0 || max_reps >= ortho_order
-
-    reps = full_sample ? ortho_order : max_reps
-
-    mean = 0
-    var = 0
-
-    for i=1:reps
-
-        ortho = full_sample ?
-            Orthogonals.indexed_element(n, i) : Orthogonals.rand(n)
-        ortho_reduced = even_parity_sector_matrix(ortho)
-        j_reduced = GF2.([isodd(i) for i=1:(n-1)])
-
-        eqs = rref(hcat(ortho_reduced - I, j_reduced))
-        r = Binary.rank(eqs)
-        has_complements = !iszero(eqs[r, 1:(n-1)])
-        r -= !has_complements
-
-        eigenvectors = n - r - 1
-
-        fixed_complement = (big"2")^(eigenvectors - 1 + has_complements)
-
-        term = fixed_complement^(t-1)
-
-        if full_sample
-            mean += term
-        else
-            new_mean = mean + (term - mean) / i
-            var += (term - mean) * (term - new_mean)
-            mean = new_mean
-        end
-    end
-
-    if full_sample
-        mean = mean / reps
-        err = 0
-    else
-        var /= reps
-        err = sqrt(var/reps)
-    end
 
     return mean, err
 end
