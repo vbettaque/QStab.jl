@@ -22,7 +22,7 @@ function single_clifford_single_string_data()
 
         data = zeros(Int, 4, reps)
 
-        for i in 1:reps
+        Threads.@threads for i in 1:reps
             O = Orthogonals.rand(n)
             S = Symplectics.rand_majorana(n)
 
@@ -41,10 +41,11 @@ function single_clifford_single_string_data()
             print(Int(floor(i / reps * 100)), "%")
         end
 
-        filename = "weights_n" * string(n) * "r" * string(reps) * ".csv"
-        path = "/Users/vbettaque/Development/Julia/QStab.jl/data/" * filename
+        file_name = "weights_n" * string(n) * "r" * string(reps) * ".csv"
+        path = "data/single_clifford/single_string/"
+        !ispath(path) && mkpath(path)
         frame = DataFrame(data', ["Symp 1", "Symp 2", "Ortho 1", "Ortho 2"])
-        CSV.write(path, frame)
+        CSV.write(path * file_name, frame)
 
         println("")
     end
@@ -96,7 +97,8 @@ function single_clifford_stabilizer_data()
         end
 
         filename = "weights_n" * string(n) * "r" * string(reps) * ".csv"
-        path = "/Users/vbettaque/Development/Julia/QStab.jl/data/single_clifford/stabilizer/" * filename
+        path = "data/single_clifford/stabilizer/"
+        !ispath(path) && mkpath(path)
 
         labels_symp_even = map(i -> "Symp Even " * string(i), 1:k)
         labels_symp_even_rref = map(i -> "Symp Even RREF " * string(i), 1:k)
@@ -111,7 +113,7 @@ function single_clifford_stabilizer_data()
             labels_ortho_even, labels_ortho_even_rref, labels_ortho_odd, labels_ortho_odd_rref)
 
         frame = DataFrame(data', labels)
-        CSV.write(path, frame)
+        CSV.write(path * filename, frame)
 
         println("")
     end
@@ -366,18 +368,21 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
     CSV.write(path * filename_pcliff, pcliff_frame)
 end
 
-n = 8
-fixed_points = FramePotential.fixed_points_ortho(n)
-data_frame = DataFrame(x = fixed_points)
-file_name = "orthogonal_n" * string(n)
-path = "data/fixed_points/orthogonal/"
-!ispath(path) && mkpath(path)
-CSV.write(path * file_name, data_frame, header=false)
+single_clifford_stabilizer_data()
 
-# n = 6
-# fixed_points = FramePotential.fixed_points_symp(n)
+# n = 10
+# reps = 100000000
+
+# fixed_points = FramePotential.fixed_points_ortho(n; max_reps=reps)
 # data_frame = DataFrame(x = fixed_points)
-# file_name = "symplectic_n" * string(n)
+# file_name = "orthogonal_n" * string(n) * "r" * string(reps)
+# path = "data/fixed_points/orthogonal/"
+# !ispath(path) && mkpath(path)
+# CSV.write(path * file_name, data_frame, header=false)
+
+# fixed_points = FramePotential.fixed_points_symp(n-2)
+# data_frame = DataFrame(x = fixed_points)
+# file_name = "symplectic_n" * string(n-2) * "r" * string(reps)
 # path = "data/fixed_points/symplectic/"
 # !ispath(path) && mkpath(path)
 # CSV.write(path * file_name, data_frame, header=false)

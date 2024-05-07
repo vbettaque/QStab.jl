@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.36
+# v0.19.41
 
 using Markdown
 using InteractiveUtils
@@ -10,22 +10,26 @@ begin
 	using DataFrames
 	using Plots
 	using Statistics
+	using LaTeXStrings
 end
 
 # ╔═╡ 817076bf-fa36-464e-b3a5-9bfc8045394e
-data_string = CSV.read("/Users/vbettaque/Development/Julia/QStab.jl/data/single_clifford/single_string/weights_n32r100000.csv", DataFrame)
+data_string = CSV.read("/home/vbettaque/Development/QStab.jl/data/single_clifford/single_string/weights_n32r100000.csv", DataFrame)
 
 # ╔═╡ 62d14022-24c8-4e46-a1b6-333cbcfab626
 begin
-	b_range = range(0, 32)
-	histogram(data_string[!, 3], bins = b_range, normalize=:pdf, label="Ortho 1", alpha=0.6)
-	histogram!(data_string[!, 4], bins = b_range, normalize=:pdf, label="Ortho 2", alpha=0.6)
-	histogram!(data_string[!, 1], bins = b_range, normalize=:pdf, label="Symp 1", alpha=0.5)
-	histogram!(data_string[!, 2], bins = b_range, normalize=:pdf, label="Symp 2", alpha=0.5)
+	b_range = range(1, 32)
+	histogram(data_string[!, 3], bins = b_range, normalize=:pdf, label=L"\mathcal{C}^p_{2n} \, (w_0 =  1)", alpha=0.6, xticks = ((2:2:32) .+ 0.5, 2:2:32))
+	histogram!(data_string[!, 4], bins = b_range, normalize=:pdf, label=L"\mathcal{C}^p_{2n} \, (w_0 =  2)", alpha=0.6)
+	histogram!(data_string[!, 1], bins = b_range, normalize=:pdf, label=L"\mathcal{C}_{2n} \, (w_0 =  1)", alpha=0.5)
+	histogram!(data_string[!, 2], bins = b_range, normalize=:pdf, label=L"\mathcal{C}_{2n} \, (w_0 =  2)", alpha=0.5)
+	xlabel!(L"Weight ($w$)")
+	vline!([16.5], color="grey", linestyle=:dash)
+	ylims!(0, 0.3)
 end
 
 # ╔═╡ f4a9943d-fded-4e4a-b288-b9785ce56eef
-data_stab = CSV.read("/Users/vbettaque/Development/Julia/QStab.jl/data/single_clifford/stabilizer/weights_n32r100000.csv", DataFrame)
+data_stab = CSV.read("/home/vbettaque/Development/QStab.jl/data/single_clifford/stabilizer/weights_n32r100000.csv", DataFrame)
 
 # ╔═╡ 948d93c1-247f-4edc-82f6-706f1c65931e
 begin
@@ -83,12 +87,14 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 CSV = "~0.10.11"
 DataFrames = "~1.6.1"
+LaTeXStrings = "~1.3.1"
 Plots = "~1.39.0"
 """
 
@@ -96,9 +102,9 @@ Plots = "~1.39.0"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.2"
+julia_version = "1.10.3"
 manifest_format = "2.0"
-project_hash = "f59d7a955464eb48728eff81791f8ae85c0798e0"
+project_hash = "341c00aefb3b2e00a8f4e11be8b932f7c0adbae3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -182,7 +188,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.0+0"
+version = "1.1.1+0"
 
 [[deps.ConcurrentUtilities]]
 deps = ["Serialization", "Sockets"]
