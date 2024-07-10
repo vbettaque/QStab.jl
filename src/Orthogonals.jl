@@ -58,34 +58,64 @@ end
 #     return _transvection(w - v - h) ∘ _transvection(h)
 # end
 
+# function _old_householder_vector(v::AbstractVector{GF2}, w::AbstractVector{GF2})
+#     @assert length(v) == length(w)
+#     @assert isone(parity(v)) && isone(parity(w))
+
+#     if iszero(v ⋅ w) || v == w
+#         return (w - v, nothing)
+#     end
+
+#     n = length(v)
+#     if iseven(n)
+#         h = complement(w - v)
+#         return (h, ones(GF2, n))
+#     end
+
+#     h = ones(GF2, n)
+#     for i=1:n
+#         if iszero(v[i]) && iszero(w[i])
+#             h[i] = 0
+#             return (h, w - v - h)
+#         end
+#     end
+
+#     h = zeros(GF2, n)
+#     v_minus = v - v .* w
+#     w_minus = w - v .* w
+#     h[findfirst(isone, v_minus)] = 1
+#     h[findfirst(isone, w_minus)] = 1
+
+#     return (h, w - v - h)
+# end
+
 function _householder_vector(v::AbstractVector{GF2}, w::AbstractVector{GF2})
     @assert length(v) == length(w)
-    @assert isone(parity(v)) && isone(parity(w))
+    @assert parity(v) == parity(w)
+    @assert !all(isone.(v)) && !all(isone.(w))
 
-    if iszero(v ⋅ w) || v == w
+    if (v ⋅ w == 1 - parity(v)) || v == w
         return (w - v, nothing)
     end
 
     n = length(v)
-    if iseven(n)
-        h = complement(w - v)
-        return (h, ones(GF2, n))
-    end
+    h = zeros(GF2, n)
 
-    h = ones(GF2, n)
-    for i=1:n
-        if iszero(v[i]) && iszero(w[i])
-            h[i] = 0
+    v_and_w = v .* w
+    v_or_w = v + w + v_and_w
+    i = findfirst(iszero, v_or_w)
+    if !isnothing(i)
+        j = findfirst(isone, v_and_w)
+        if !isnothing(j)
+            h[i] = 1; h[j] = 1
             return (h, w - v - h)
         end
     end
 
-    h = zeros(GF2, n)
-    v_minus = v - v .* w
-    w_minus = w - v .* w
+    v_minus = v - v_and_w
+    w_minus = w - v_and_w
     h[findfirst(isone, v_minus)] = 1
     h[findfirst(isone, w_minus)] = 1
-
     return (h, w - v - h)
 end
 
