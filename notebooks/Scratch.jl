@@ -4,7 +4,7 @@ using CSV
 using Random
 using LinearAlgebra
 using QStab
-using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Binary, QStab.Utils, QStab.Circuits, QStab.FramePotential, QStab.Hilbert
+using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Galois, QStab.Utils, QStab.Circuits, QStab.FramePotential, QStab.Hilbert, QStab.Magic
 
 function single_clifford_single_string_data()
     reps = 100000
@@ -415,27 +415,29 @@ end
 
 # single_clifford_stabilizer_data()
 
-# n = 10
-# reps = 100000000
+# ns = 14:2:20
+# reps = 1000000
 
-# fixed_points = FramePotential.fixed_points_ortho(n; max_reps=reps)
-# data_frame = DataFrame(x = fixed_points)
-# file_name = "orthogonal_n" * string(n) * "r" * string(reps)
-# path = "data/fixed_points/orthogonal/"
-# !ispath(path) && mkpath(path)
-# CSV.write(path * file_name, data_frame, header=false)
+# for n in ns
+#     fixed_points = FramePotential.fixed_points_ortho(n; max_reps=reps)
+#     data_frame = DataFrame(x = fixed_points)
+#     file_name = "orthogonal_n" * string(n) * "r" * string(reps) * ".csv"
+#     path = "data/fixed_points/orthogonal/"
+#     !ispath(path) && mkpath(path)
+#     CSV.write(path * file_name, data_frame, header=false)
 
-# fixed_points = FramePotential.fixed_points_symp(n-2)
-# data_frame = DataFrame(x = fixed_points)
-# file_name = "symplectic_n" * string(n-2) * "r" * string(reps)
-# path = "data/fixed_points/symplectic/"
-# !ispath(path) && mkpath(path)
-# CSV.write(path * file_name, data_frame, header=false)
+#     fixed_points = FramePotential.fixed_points_symp(n-2; max_reps=reps)
+#     data_frame = DataFrame(x = fixed_points)
+#     file_name = "symplectic_n" * string(n-2) * "r" * string(reps) * ".csv"
+#     path = "data/fixed_points/symplectic/"
+#     !ispath(path) && mkpath(path)
+#     CSV.write(path * file_name, data_frame, header=false)
+# end
 
 # Orthogonals.group_order(8)
 
 # FramePotential.from_fixed_points(fixed_points, 5; exact=true)
-# x = 1
+# # x = 1
 
 # n = 8
 # println("start")
@@ -496,7 +498,7 @@ end
 # end
 
 
-# n = 4
+# n = 6
 # order = Orthogonals.group_order(n)
 # orthos = Set([])
 # for i=1:order
@@ -518,7 +520,7 @@ end
 
 # generate_data()
 
-# N = 6
+# N = 4
 # for i=1:Orthogonals.group_order(N)
 #     O = Orthogonals.indexed_element(N, i)
 #     display(O)
@@ -552,3 +554,40 @@ end
 #     # println("haar: ", factorial(2*t) / ( factorial(t) * factorial(t+1)))
 #     println("haar: ", factorial(t))
 # end
+
+# n = 20
+# size = (big"2")^(n - 1)
+# for r = 1:10000
+#     v = Galois.indexed_even_bitvec(rand(1:size), n)
+#     w = Galois.indexed_even_bitvec(rand(1:size), n)
+#     if all(isone.(v)) || all(isone.(w)) || all(iszero.(v)) || all(iszero.(w))
+#         continue
+#     end
+
+#     h1, h2 = Orthogonals._householder_vector(v, w)
+#     z = v + (v ⋅ h1) * h1
+#     if !isnothing(h2)
+#         z = z + (z ⋅ h2) * h2
+#     end
+#     @assert z == w
+# end
+
+function spin_glass_mana()
+    for g in LinRange(0, 20, 100)
+        H = Hermitian(qutrit_z' * qutrit_z + g * (qutrit_x' + qutrit_x))
+        # display(H)
+        e = eigen(H; sortby=abs)
+        display(e.values)
+        ground_state_1 = e.vectors[:,1]
+        ground_state_2 = e.vectors[:,2]
+        rho_1 = ground_state_1 * ground_state_1'
+        rho_2  = ground_state_2 * ground_state_2'
+        display(Magic.mana(rho_1))
+    end
+end
+
+spin_glass_mana()
+
+#  display(map(x -> isapprox(x, 0, atol=1e-8) ? 0 : x, Magic.phase_space_point(GF3.([1, 1, 2, 1]))))
+
+#  Magic.phase_space_point(GF3.([1, 1, 2, 1]))

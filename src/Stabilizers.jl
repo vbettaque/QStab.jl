@@ -1,7 +1,7 @@
 module Stabilizers
 
 using Random, Combinatorics, LinearAlgebra
-using ..Binary, ..Orthogonals, ..Symplectics, ..Utils
+using ..Galois, ..Orthogonals, ..Symplectics, ..Utils
 
 export canon_stab_matrix, rand_stab_matrix, entangled_stab_matrix, weight_pauli, weight_majorana, entropy, mutual_info, stab_subgroup, code_distance
 
@@ -96,7 +96,7 @@ function code_distance(code_cliff, k; mc_max= 0)
                 info_AR = mutual_info(stab, A, R)
                 if info_AR > 0
                     non_zero_info = true
-                    break  
+                    break
                 end
             end
         else
@@ -105,7 +105,7 @@ function code_distance(code_cliff, k; mc_max= 0)
                 info_AR = mutual_info(stab, A, R)
                 if info_AR > 0
                     non_zero_info = true
-                    break  
+                    break
                 end
             end
         end

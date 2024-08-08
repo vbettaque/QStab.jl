@@ -2,7 +2,7 @@ module FramePotential
 
 using LinearAlgebra, Statistics
 
-using ..Binary, ..Symplectics, ..Orthogonals, ..Hilbert, ..Utils
+using ..Galois, ..Symplectics, ..Orthogonals, ..Hilbert, ..Utils
 
 function unitary(t::Integer, d::Integer)
     @assert t > 0

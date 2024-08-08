@@ -1,15 +1,18 @@
-module Binary
+module Galois
 
 using GaloisFields, LinearAlgebra
 
 using ..Utils
 
-export GF2, parity, complement, complement!, parity_complement, parity_complement!, bitvec,
+export GF, GF2, GF3, parity, complement, complement!, parity_complement, parity_complement!, bitvec, tritvec,
     indexed_even_bitvec, indexed_odd_bitvec, rank
 
 const GF2 = @GaloisField 2
+const GF3 = @GaloisField 3
 
-Base.conj(x::GF2) = x
+GF = Union{GF2, GF3}
+
+Base.conj(x::GF) = x
 
 parity(vec::AbstractVector{GF2}) = reduce(+, vec; init = GF2(0))
 
@@ -47,6 +50,15 @@ function bitvec(n::Integer, len::Integer)
     return GF2.(vec)
 end
 
+function tritvec(n::Integer, len::Integer)
+    @assert n >= 0
+    @assert len > 0
+
+    vec = zeros(Integer, len)
+    digits!(vec, n, base=3)
+    return GF3.(vec)
+end
+
 function indexed_even_bitvec(i::Integer, len::Integer)
     @assert len > 1
     @assert 1 <= i <= (big"2")^(len - 1)
@@ -69,7 +81,7 @@ function indexed_odd_bitvec(i::Integer, len::Integer)
     return vec
 end
 
-function rank(M::AbstractMatrix{GF2})
+function rank(M::AbstractMatrix{GF})
     n, _ = size(M)
     M_rref = rref(M)
     non_zero = [!iszero(M_rref[i, :]) for i=1:n]
