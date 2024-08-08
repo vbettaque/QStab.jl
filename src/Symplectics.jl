@@ -2,7 +2,9 @@ module Symplectics
 
 using Random
 using LinearAlgebra
-using ..Binary
+using ..Galois
+
+export inner_pauli, ∧
 
 function group_order(n::Integer)
     @assert iseven(n) && n > 0
@@ -35,14 +37,14 @@ function jordan_wigner_matrix(n::Integer)
     return triu!(complement!(product_form_pauli(n)))
 end
 
-function inner_pauli(A::AbstractVecOrMat{GF2}, B::AbstractVecOrMat{GF2})
+function inner_pauli(A::AbstractVecOrMat{F}, B::AbstractVecOrMat{F}) where {F <: GF}
     n = size(A, 1)
     @assert iseven(n) && n == size(B, 1)
     return view(A, 1:2:(n-1), :)' * view(B, 2:2:n, :) -
         view(A, 2:2:n, :)' * view(B, 1:2:(n-1), :)
 end
 
-∧(x::AbstractVecOrMat{GF2}, y::AbstractVecOrMat{GF2}) = inner_pauli(x, y)
+∧(x::AbstractVector{F}, y::AbstractVector{F}) where {F <: GF} = inner_pauli(x, y)[1]
 
 function inner_majorana(A::AbstractVecOrMat{GF2}, B::AbstractVecOrMat{GF2})
     n = size(A, 1)
@@ -50,7 +52,7 @@ function inner_majorana(A::AbstractVecOrMat{GF2}, B::AbstractVecOrMat{GF2})
     return transpose(A) * parity_complement(B)
 end
 
-⊼(x::AbstractVecOrMat{GF2}, y::AbstractVecOrMat{GF2}) = inner_majorana(x, y)
+⊼(x::AbstractVector{GF2}, y::AbstractVector{GF2}) = inner_majorana(x, y)[1]
 
 function is_pauli(A::AbstractMatrix{GF2})
     n = size(A, 1)

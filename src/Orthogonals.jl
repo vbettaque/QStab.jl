@@ -1,6 +1,6 @@
 module Orthogonals
 
-using ..Binary
+using ..Galois
 using LinearAlgebra
 using Random
 

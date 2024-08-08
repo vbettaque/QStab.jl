@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.41
+# v0.19.40
 
 using Markdown
 using InteractiveUtils
@@ -14,7 +14,7 @@ begin
 end
 
 # ╔═╡ 817076bf-fa36-464e-b3a5-9bfc8045394e
-data_string = CSV.read("/home/vbettaque/Development/QStab.jl/data/single_clifford/single_string/weights_n32r100000.csv", DataFrame)
+data_string = CSV.read("/Users/vbettaque/Development/Julia/QStab.jl/data/single_clifford/single_string/weights_n32r100000.csv", DataFrame)
 
 # ╔═╡ 62d14022-24c8-4e46-a1b6-333cbcfab626
 begin
@@ -23,13 +23,13 @@ begin
 	histogram!(data_string[!, 4], bins = b_range, normalize=:pdf, label=L"\mathcal{C}^p_{2n} \, (w_0 =  2)", alpha=0.6)
 	histogram!(data_string[!, 1], bins = b_range, normalize=:pdf, label=L"\mathcal{C}_{2n} \, (w_0 =  1)", alpha=0.5)
 	histogram!(data_string[!, 2], bins = b_range, normalize=:pdf, label=L"\mathcal{C}_{2n} \, (w_0 =  2)", alpha=0.5)
-	xlabel!(L"Weight ($w$)")
-	vline!([16.5], color="grey", linestyle=:dash)
+	xlabel!(L"String Weight ($w$)")
+	vline!([16.5], color="grey", linestyle=:dash, primary=false)
 	ylims!(0, 0.3)
 end
 
 # ╔═╡ f4a9943d-fded-4e4a-b288-b9785ce56eef
-data_stab = CSV.read("/home/vbettaque/Development/QStab.jl/data/single_clifford/stabilizer/weights_n32r100000.csv", DataFrame)
+data_stab = CSV.read("/Users/vbettaque/Development/Julia/QStab.jl/data/single_clifford/stabilizer/weights_n32r100000.csv", DataFrame)
 
 # ╔═╡ 948d93c1-247f-4edc-82f6-706f1c65931e
 begin
@@ -45,41 +45,125 @@ end
 
 # ╔═╡ c3d0024b-0189-4105-b544-af00e7fe6199
 begin
-	histogram(data_stab[!, 65], bins = b_range, normalize=:pdf, label="Ortho Even", alpha=0.6)
-	histogram!(data_stab[!, 81], bins = b_range, normalize=:pdf, label="Ortho Even RREF", alpha=0.6)
+	histogram(data_stab[!, 65], bins = b_range, normalize=:pdf, label="Naïve", alpha=0.6, xticks = ((2:2:32) .+ 0.5, 2:2:32))
+	histogram!(data_stab[!, 81], bins = b_range, normalize=:pdf, label="Minimal", alpha=0.6)
+	vline!([16.5], color="grey", linestyle=:dash, primary=false)
+	vline!([9.5], color="grey", linestyle=:dash, primary=false)
+	xlabel!(L"Stabilizer Basis Weights ($w$)")
+	ylims!(0, 0.4)
 end
 
 # ╔═╡ 0be00b0a-38a6-4b52-80e7-daabe79c3897
 begin
-	histogram(data_stab[!, 97], bins = b_range, normalize=:pdf, label="Ortho Odd", alpha=0.6)
-	histogram!(data_stab[!, 113], bins = b_range, normalize=:pdf, label="Ortho Odd RREF", alpha=0.6)
+	histogram(data_stab[!, 97], bins = b_range, normalize=:pdf, label="Naïve", alpha=0.6, xticks = ((2:2:32) .+ 0.5, 2:2:32))
+	histogram!(data_stab[!, 113], bins = b_range, normalize=:pdf, label="Minimal", alpha=0.6)
+	vline!([16.5], color="grey", linestyle=:dash, primary=false)
+	vline!([9.5], color="grey", linestyle=:dash, primary=false)
+	xlabel!(L"Stabilizer Basis Weights ($w$)")
+	ylims!(0, 0.3)
 end
 
 # ╔═╡ 6b50d3d3-5be5-4e11-9909-95d661067459
 begin
-	histogram(data_stab[!, 1], bins = b_range, normalize=:pdf, label="Symp", alpha=0.6)
-	histogram!(data_stab[!, 17], bins = b_range, normalize=:pdf, label="Symp RREF", alpha=0.6)
+	histogram(data_stab[!, 1], bins = b_range, normalize=:pdf, label="Naïve", alpha=0.6, xticks = ((2:2:32) .+ 0.5, 2:2:32))
+	histogram!(data_stab[!, 17], bins = b_range, normalize=:pdf, label="Minimal", alpha=0.6)
+	vline!([16.5], color="grey", linestyle=:dash, primary=false)
+	vline!([9.5], color="grey", linestyle=:dash, primary=false)
+	xlabel!(L"Stabilizer Basis Weights ($w$)")
+	ylims!(0, 0.22)
 end
 
 # ╔═╡ 3a7a3644-056f-4d22-8fd4-84bfa35f3c3a
 begin
-	mean_distance_ortho = zeros(23)
-	mean_distance_symp = zeros(23)
-	for n in 4:2:48,
-		path_n = "/home/vbettaque/Development/QStab.jl/data/single_clifford/distance/k2/distance_n" * string(n) * "k2mc1000r100000.csv"
-		data_n = CSV.read("/home/vbettaque/Development/QStab.jl/data/single_clifford/distance/k2/distance_n" * string(n) * "k2mc1000r100000.csv", DataFrame)
-		mean_distance_ortho[n ÷ 2 - 1] = Statistics.mean(data_n[!, 1]) / n
-		mean_distance_symp[n ÷ 2 - 1] = Statistics.mean(data_n[!, 2]) / n 
+	distance_ortho_mean = zeros(23)
+	distance_ortho_err = zeros(23)
+	distance_symp_mean = zeros(23)
+	distance_symp_err = zeros(23)
+	for n in 4:2:48
+		path_n = "/Users/vbettaque/Development/Julia/QStab.jl/data/single_clifford/distance/k2/distance_n" * string(n) * "k2mc1000r100000.csv"
+		data_n = CSV.read(path_n, DataFrame)
+		distance_ortho_mean[n ÷ 2 - 1] = Statistics.mean(data_n[!, 1] ./ n)
+		distance_ortho_err[n ÷ 2 - 1] = Statistics.std(data_n[!, 1] ./ n)
+		distance_symp_mean[n ÷ 2 - 1] = Statistics.mean(data_n[!, 2] ./ n)
+		distance_symp_err[n ÷ 2 - 1] = Statistics.std(data_n[!, 2] ./ n)
 	end
-
-	plot(4:2:48, mean_distance_ortho; label="ortho")
-	plot!(4:2:48, mean_distance_symp; label="symp")
 end
 
 # ╔═╡ 56f7fabe-3129-4058-be3e-737dfddcd07f
 begin
-	path = "/home/vbettaque/Development/QStab.jl/data/single_clifford/distance/k2/distance_n" * string(6) * "k2mc1000r100000.csv"
-	println(path)
+	plot(4:2:48, distance_ortho_mean; label="Even", seriestype=:scatter, yerr=distance_ortho_err, color=1, markerstrokecolor=1)
+	plot!(4:2:48, distance_symp_mean; label="Odd", seriestype=:scatter, yerr=distance_symp_err, color=2, markerstrokecolor=2)
+	xlabel!(L"Stabilizer String Size ($N$)")
+	ylabel!(L"Relative Code Distance ($d/N$)")
+	
+end
+
+# ╔═╡ 7383c6b0-6aa7-416b-978c-e8d16c7aa624
+begin
+	ns = 4:2:20
+	rss = ["", "", "", "r100000000", "r1000000", "r1000000", "r1000000", "r1000000", "r1000000"]
+	ts = 1:10
+	rs = []
+	frame_ortho_mean = zeros(length(ns), length(ts))
+	frame_ortho_err = zeros(length(ns), length(ts))
+	frame_symp_mean = zeros(length(ns), length(ts))
+	frame_symp_err = zeros(length(ns), length(ts))
+	for i in 1:length(ns)
+		ortho_n_path = "/Users/vbettaque/Development/Julia/QStab.jl/data/fixed_points/orthogonal/orthogonal_n" * string(ns[i]) * rss[i] * ".csv"
+		symp_n_path = "/Users/vbettaque/Development/Julia/QStab.jl/data/fixed_points/symplectic/symplectic_n" * string(ns[i] - 2) * rss[i] * ".csv"
+		
+		ortho_n_data = CSV.read(ortho_n_path, DataFrame; header=false)
+		symp_n_data = CSV.read(symp_n_path, DataFrame; header=false)
+		
+		for j in 1:length(ts)
+			frame_ortho_mean[i, j] = Statistics.mean(ortho_n_data[!, 1] .^ Int(ts[j]-1))
+			frame_ortho_err[i, j] = Statistics.std(ortho_n_data[!, 1] .^ Int(ts[j]-1))
+			frame_symp_mean[i, j] = Statistics.mean(symp_n_data[!, 1] .^ Int(ts[j]-1))
+			frame_symp_err[i, j] = Statistics.std(symp_n_data[!, 1] .^ Int(ts[j]-1))
+		end
+	end
+end
+
+# ╔═╡ 8ff82023-7f43-4993-83c9-2fe940760b91
+begin
+	frame_unit = [factorial(2*t)/(factorial(t) * factorial(t+1)) for t=1:10]
+	plot(1:10, frame_ortho_mean[1,:]; seriestype=:scatter, color=1, label=L"\mathcal{F}^+_t(\mathcal{C}^p_{4})", yaxis=:log)
+	plot!(1:10, frame_symp_mean[1,:]; seriestype=:scatter, color=2, label=L"\mathcal{F}_t(\mathcal{C}_{2})", yaxis=:log)
+	plot!(1:10, frame_unit; seriestype=:scatter, color=3, label=L"\mathcal{F}_t(U(2))", yaxis=:log, legend=:topleft)
+	xlabel!(L"t")
+end
+
+# ╔═╡ 85e7ae3e-a325-4cd8-9e94-a18dc9170293
+begin
+	frame_unit_2 = [factorial(t) for t=1:10]
+	plot(1:10, frame_ortho_mean[2,:]; seriestype=:scatter, color=1, label=L"\mathcal{F}^+_t(\mathcal{C}^p_{6})", yaxis=:log)
+	plot!(1:10, frame_symp_mean[2,:]; seriestype=:scatter, color=2, label=L"\mathcal{F}_t(\mathcal{C}_{4})", yaxis=:log)
+	plot!(1:10, frame_unit_2; seriestype=:scatter, color=3, label=L"\mathcal{F}_t(U(4))", yaxis=:log, legend=:topleft)
+	xlabel!(L"t")
+end
+
+# ╔═╡ 4fc1e7a8-a8d5-42e1-8da7-e2e38ede4bf2
+begin
+	plot(1:10, frame_ortho_mean[3,:]; seriestype=:scatter, color=1, label=L"\mathcal{F}^+_t(\mathcal{C}^p_{8})", yaxis=:log)
+	plot!(1:10, frame_symp_mean[3,:]; seriestype=:scatter, color=2, label=L"\mathcal{F}_t(\mathcal{C}_{6})", yaxis=:log)
+	plot!(1:10, frame_unit_2; seriestype=:scatter, color=3, label=L"\mathcal{F}_t(U(8))", yaxis=:log, legend=:topleft)
+	xlabel!(L"t")
+end
+
+# ╔═╡ 757179fa-cf19-4712-a017-c0bae172d77b
+begin
+	plot(1:9, frame_ortho_mean[4,1:9]; seriestype=:scatter, color=1, label=L"\mathcal{F}^+_t(\mathcal{C}^p_{10})", yaxis=:log, yerr=frame_ortho_err[4,1:9] / 10000)
+	plot!(1:9, frame_symp_mean[4,1:9]; seriestype=:scatter, color=2, label=L"\mathcal{F}_t(\mathcal{C}_{8})", yaxis=:log, yerr=frame_symp_err[4,1:9] / 10000)
+	plot!(1:9, frame_unit_2[1:9]; seriestype=:scatter, color=3, label=L"\mathcal{F}_t(U(16))", yaxis=:log, legend=:topleft)
+	xlabel!(L"t")
+end
+
+# ╔═╡ 75771da4-ffaa-465c-af0d-dd6b24098a43
+begin
+	plot(1:10, frame_ortho_mean[9,1:10]; seriestype=:scatter, color=1, label=L"\mathcal{F}^+_t(\mathcal{C}^p_{20})", yaxis=:log, yerr=frame_ortho_err[9,1:10] / 1000)
+	plot!(1:10, frame_symp_mean[9,1:10]; seriestype=:scatter, color=2, label=L"\mathcal{F}_t(\mathcal{C}_{18})", yaxis=:log, yerr=frame_symp_err[9,1:10] / 1000)
+	plot!(1:10, frame_unit_2[1:10]; seriestype=:scatter, color=3, label=L"\mathcal{F}_t(U(2^9))", yaxis=:log, legend=:topleft)
+	xlabel!(L"t")
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1258,5 +1342,11 @@ version = "1.4.1+1"
 # ╠═6b50d3d3-5be5-4e11-9909-95d661067459
 # ╠═3a7a3644-056f-4d22-8fd4-84bfa35f3c3a
 # ╠═56f7fabe-3129-4058-be3e-737dfddcd07f
+# ╠═7383c6b0-6aa7-416b-978c-e8d16c7aa624
+# ╠═8ff82023-7f43-4993-83c9-2fe940760b91
+# ╠═85e7ae3e-a325-4cd8-9e94-a18dc9170293
+# ╠═4fc1e7a8-a8d5-42e1-8da7-e2e38ede4bf2
+# ╠═757179fa-cf19-4712-a017-c0bae172d77b
+# ╠═75771da4-ffaa-465c-af0d-dd6b24098a43
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

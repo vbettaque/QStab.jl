@@ -2,7 +2,7 @@ module Circuits
 
 using LinearAlgebra
 using Random
-using ..Binary
+using ..Galois
 
 export rand_q_local_volume
 
