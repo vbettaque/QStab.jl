@@ -4,7 +4,7 @@ using CSV
 using Random
 using LinearAlgebra
 using QStab
-using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Galois, QStab.Utils, QStab.Circuits, QStab.FramePotential, QStab.Hilbert, QStab.Magic
+using QStab.Symplectics, QStab.Orthogonals, QStab.Stabilizers, QStab.Galois, QStab.Utils, QStab.Circuits, QStab.FramePotential, QStab.Hilbert, QStab.Magic, QStab.Hamiltonians
 
 function single_clifford_single_string_data()
     reps = 100000
@@ -368,51 +368,6 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
     CSV.write(path * filename_pcliff, pcliff_frame)
 end
 
-function cliff_from_stab(M::AbstractMatrix{GF2})
-    r, n = size(M)
-    M_anc = zeros(GF2, r, n + 2)
-    M_anc[:, 1:n] = M
-    display(M_anc)
-    for i =1:r
-        println("i = ", i)
-        m = M_anc[i, :]
-        println("m = ", m)
-        # m_reduced = vcat(zeros(GF2, 2*i-2), m[(2*i-1):(n+2)])
-        m_reduced = m[(2*i-1):(n+2)]
-        println("m_recuced = ", m_reduced)
-        # m_std = zeros(GF2, n + 2)
-        # m_std[2*i-1] = 1; m_std[2*i] = 1
-        m_std = zeros(GF2, n + 4 - 2 * i)
-        m_std[1] = 1; m_std[2] = 1
-
-        h1, h2 = Orthogonals._householder_vector(m_std, m_reduced)
-        println(h1, " ", h2)
-        h1 = vcat(m[1:(2*i-2)], h1)
-        M_anc = Orthogonals._householder!(M_anc', h1)'
-        if !isnothing(h2)
-            h2 = vcat(zeros(GF2, 2*i-2), h2)
-            M_anc = Orthogonals._householder!(M_anc', h2)'
-        end
-        display(M_anc)
-    end
-    return M_anc
-end
-
-n = 12
-r = 6
-M_std = Stabilizers.canon_stab_matrix(n)
-for i=1:1000
-    M_std_r = (Orthogonals.rand(n ÷ 2) * M_std)[1:r, :]
-    if rand(Bool)
-        M_std_r[rand(1:r), :] = ones(GF2, n)
-    end
-    M_std_r = (Orthogonals.rand(r) * M_std_r)
-
-    M = M_std_r * Orthogonals.rand(n)
-
-    @assert cliff_from_stab(M)[:, 1:n] == M_std[1:r, :]
-end
-
 # single_clifford_stabilizer_data()
 
 # ns = 14:2:20
@@ -437,7 +392,7 @@ end
 # Orthogonals.group_order(8)
 
 # FramePotential.from_fixed_points(fixed_points, 5; exact=true)
-# # x = 1
+# x = 1
 
 # n = 8
 # println("start")
@@ -574,10 +529,10 @@ end
 
 function spin_glass_mana()
     for g in LinRange(0, 20, 100)
-        H = Hermitian(qutrit_z' * qutrit_z + g * (qutrit_x' + qutrit_x))
+        H = Hamiltonians.qutrit_sherrington_kirkpatrick(4, 1, g)
         # display(H)
         e = eigen(H; sortby=abs)
-        display(e.values)
+        # display(e.values)
         ground_state_1 = e.vectors[:,1]
         ground_state_2 = e.vectors[:,2]
         rho_1 = ground_state_1 * ground_state_1'
@@ -587,6 +542,9 @@ function spin_glass_mana()
 end
 
 spin_glass_mana()
+
+# H = Hamiltonians.qutrit_sherrington_kirkpatrick(4, 1, 0)
+# display(H)
 
 #  display(map(x -> isapprox(x, 0, atol=1e-8) ? 0 : x, Magic.phase_space_point(GF3.([1, 1, 2, 1]))))
 

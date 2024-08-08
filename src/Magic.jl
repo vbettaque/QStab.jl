@@ -20,7 +20,8 @@ function wigner(rho::AbstractMatrix{ComplexF64}, a::AbstractVector{GF3})
     n = length(a)
     @assert iseven(n) && n > 0
     @assert D == D_ == 3^(n ÷ 2)
-    wig = tr(phase_space_point(a) * rho) / D
+    psp = phase_space_point(a)
+    wig = reduce(+, [dot(psp[i, :], rho[:, i]) for i=1:D]) / D
     @assert isreal(wig) || isapprox(imag(wig), 0, atol=1e-10)
     return real(wig)
 end
@@ -30,13 +31,13 @@ function mana(rho::AbstractMatrix{ComplexF64})
     n = 2 * log(3, D)
     @assert D == D_ && isinteger(n)
     n = Integer(n)
-    mana = 0
-    for i=1:(D^2)
+    mana = Threads.Atomic{Float64}(0);
+    Threads.@threads for i=1:(D^2)
         a = tritvec(i-1, n)
         wig = wigner(rho, a)
-        mana += abs(wig)
+        Threads.atomic_add!(mana, abs(wig))
     end
-    return log(3, mana)
+    return log(3, mana[])
 end
 
 end
