@@ -31,3 +31,7 @@ function rand_q_local_volume(n, q, D, sampler)
 end
 
 end
+
+function rand_nora(k, L, r, D, q, sampler)
+    
+end

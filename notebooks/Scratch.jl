@@ -368,7 +368,52 @@ function even_frame_potentials(n_max, t_max; max_reps = -1)
     CSV.write(path * filename_pcliff, pcliff_frame)
 end
 
-single_clifford_stabilizer_data()
+function cliff_from_stab(M::AbstractMatrix{GF2})
+    r, n = size(M)
+    M_anc = zeros(GF2, r, n + 2)
+    M_anc[:, 1:n] = M
+    display(M_anc)
+    for i =1:r
+        println("i = ", i)
+        m = M_anc[i, :]
+        println("m = ", m)
+        # m_reduced = vcat(zeros(GF2, 2*i-2), m[(2*i-1):(n+2)])
+        m_reduced = m[(2*i-1):(n+2)]
+        println("m_recuced = ", m_reduced)
+        # m_std = zeros(GF2, n + 2)
+        # m_std[2*i-1] = 1; m_std[2*i] = 1
+        m_std = zeros(GF2, n + 4 - 2 * i)
+        m_std[1] = 1; m_std[2] = 1
+
+        h1, h2 = Orthogonals._householder_vector(m_std, m_reduced)
+        println(h1, " ", h2)
+        h1 = vcat(m[1:(2*i-2)], h1)
+        M_anc = Orthogonals._householder!(M_anc', h1)'
+        if !isnothing(h2)
+            h2 = vcat(zeros(GF2, 2*i-2), h2)
+            M_anc = Orthogonals._householder!(M_anc', h2)'
+        end
+        display(M_anc)
+    end
+    return M_anc
+end
+
+n = 12
+r = 6
+M_std = Stabilizers.canon_stab_matrix(n)
+for i=1:1000
+    M_std_r = (Orthogonals.rand(n ÷ 2) * M_std)[1:r, :]
+    if rand(Bool)
+        M_std_r[rand(1:r), :] = ones(GF2, n)
+    end
+    M_std_r = (Orthogonals.rand(r) * M_std_r)
+
+    M = M_std_r * Orthogonals.rand(n)
+
+    @assert cliff_from_stab(M)[:, 1:n] == M_std[1:r, :]
+end
+
+# single_clifford_stabilizer_data()
 
 # n = 10
 # reps = 100000000
@@ -390,7 +435,7 @@ single_clifford_stabilizer_data()
 # Orthogonals.group_order(8)
 
 # FramePotential.from_fixed_points(fixed_points, 5; exact=true)
-x = 1
+# x = 1
 
 # n = 8
 # println("start")
