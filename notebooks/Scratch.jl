@@ -537,7 +537,8 @@ function spin_glass_mana()
         ground_state_2 = e.vectors[:,2]
         rho_1 = ground_state_1 * ground_state_1'
         rho_2  = ground_state_2 * ground_state_2'
-        display(Magic.mana(rho_1))
+        println("g = ", g, "M = ", Magic.mana(rho_1))
+        println("")
     end
 end
 

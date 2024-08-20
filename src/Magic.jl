@@ -1,9 +1,10 @@
 module Magic
 
 using LinearAlgebra
+using Memoize
 using ..Galois, ..Symplectics, ..Hilbert
 
-function phase_space_point(a::AbstractVector{GF3})
+@memoize function phase_space_point(a::AbstractVector{GF3})
     n = length(a)
     @assert iseven(n) && n > 0
     D = 3^(n ÷ 2)
@@ -31,11 +32,14 @@ function mana(rho::AbstractMatrix{ComplexF64})
     n = 2 * log(3, D)
     @assert D == D_ && isinteger(n)
     n = Integer(n)
-    mana = Threads.Atomic{Float64}(0);
-    Threads.@threads for i=1:(D^2)
+    mana = 0;
+    for i=1:(D^2)
+        print("\e[2K")
+        print("\e[1G")
+        print(i/D^2 * 100)
         a = tritvec(i-1, n)
         wig = wigner(rho, a)
-        Threads.atomic_add!(mana, abs(wig))
+        mana += abs(wig)
     end
     return log(3, mana[])
 end
