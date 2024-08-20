@@ -8,29 +8,24 @@ using ..Galois
 using ..Symplectics
 using ..Orthogonals
 
-export pauli_x, pauli_y, pauli_z, qutrit_x, qutrit_z, qutrit_phase, pauli_string
+export pauli_x, pauli_y, pauli_z, qutrit_x, qutrit_z, α, ⊗, inout_dims, pauli_string
 
 const pauli_x = [0 1; 1 0]
 const pauli_y = [0 -im; im 0]
 const pauli_z = [1 0; 0 -1]
 
-function qutrit_phase(p::GF3)
-    if p == 0
-        return 1
-    elseif p == 1
-        return (-1/2 + sqrt(3)/2 * im)
-    else
-        return (-1/2 - sqrt(3)/2 * im)
-    end
-end
-
-function qutrit_phase(p::Int)
-    @assert 0 <= p <= 2
-    return qutrit_phase(GF3(p))
-end
+const α = (-1/2 + sqrt(3)/2 * im)
 
 const qutrit_x = [0 0 1; 1 0 0; 0 1 0]
-const qutrit_z = [1 0 0; 0 qutrit_phase(1) 0; 0 0 qutrit_phase(2)]
+const qutrit_z = [1 0 0; 0 α 0; 0 0 α^2]
+
+⊗ = kron
+
+function inout_dims(n)
+    @assert iseven(n) && n > 0
+    dims = reshape(reshape(1:n, (n ÷ 2, 2))', n)
+    return collect(dims)
+end
 
 function pauli_string(v::AbstractVector{GF2})
     n = length(v)
@@ -47,7 +42,7 @@ function pauli_string(v::AbstractVector{GF2})
         else
             [1 0; 0 1]
         end
-        string = kron(string, pauli)
+        string = string ⊗ pauli
     end
 
     return string
@@ -61,10 +56,10 @@ function pauli_string(v::AbstractVector{GF3})
     power = zero(GF3)
     for i=1:2:(n - 1)
         pauli = qutrit_z^Integer(v[i]) * qutrit_x^Integer(v[i+1])
-        string = kron(string, pauli)
+        string = string ⊗ pauli
         power -= v[i] * v[i+1]
     end
-    coeff = qutrit_phase(power / GF3(2))
+    coeff = α^Integer(power / GF3(2))
     return coeff * string
 end
 

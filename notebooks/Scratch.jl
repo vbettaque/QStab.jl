@@ -527,22 +527,40 @@ end
 #     @assert z == w
 # end
 
-function spin_glass_mana()
-    for g in LinRange(0, 20, 100)
-        H = Hamiltonians.qutrit_sherrington_kirkpatrick(4, 1, g)
-        # display(H)
-        e = eigen(H; sortby=abs)
-        # display(e.values)
-        ground_state_1 = e.vectors[:,1]
-        ground_state_2 = e.vectors[:,2]
-        rho_1 = ground_state_1 * ground_state_1'
-        rho_2  = ground_state_2 * ground_state_2'
-        println("g = ", g, "M = ", Magic.mana(rho_1))
-        println("")
+function spin_glass_mana(N, J, g_max, iters, steps)
+    gs = []
+    manas = []
+    for g in LinRange(0, g_max, steps)
+        println("g = ", g)
+        append!(gs, g)
+        avg_mana = 0
+        for i = 1:iters
+            H = Hamiltonians.qutrit_sherrington_kirkpatrick(N, J, g)
+            # display(H)
+            e = eigen(H)
+            display(e.values)
+            ground_state = normalize(e.vectors[:,1])
+            # display(ground_state)
+            display(e.vectors)
+            rho = ground_state * ground_state'
+            avg_mana += Magic.mana(rho)
+        end
+        avg_mana /= iters
+        @assert avg_mana < 0.1
+        append!(manas, avg_mana)
     end
+    return gs, manas
 end
 
-spin_glass_mana()
+using Plots
+gs, manas = spin_glass_mana(3, 0, 6, 1, 1000)
+plot(gs, manas)
+
+# for i=1:9
+#     a = tritvec(i, 2)
+#     @assert isapprox(Magic.phase_space_point(a), Magic.phase_space_point_ops[i], atol=1e-8)
+# end
+# println("done")
 
 # H = Hamiltonians.qutrit_sherrington_kirkpatrick(4, 1, 0)
 # display(H)

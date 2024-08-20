@@ -40,11 +40,13 @@ end
 function inner_pauli(A::AbstractVecOrMat{F}, B::AbstractVecOrMat{F}) where {F <: GF}
     n = size(A, 1)
     @assert iseven(n) && n == size(B, 1)
-    return view(A, 1:2:(n-1), :)' * view(B, 2:2:n, :) -
+    result = view(A, 1:2:(n-1), :)' * view(B, 2:2:n, :) -
         view(A, 2:2:n, :)' * view(B, 1:2:(n-1), :)
+    length(result) == 1 && return result[1]
+    return result
 end
 
-∧(x::AbstractVector{F}, y::AbstractVector{F}) where {F <: GF} = inner_pauli(x, y)[1]
+∧(A::AbstractVecOrMat{F}, B::AbstractVecOrMat{F}) where {F <: GF} = inner_pauli(A, B)
 
 function inner_majorana(A::AbstractVecOrMat{GF2}, B::AbstractVecOrMat{GF2})
     n = size(A, 1)
