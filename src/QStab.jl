@@ -10,5 +10,6 @@ include("Hilbert.jl")
 include("FramePotential.jl")
 include("Magic.jl")
 include("Hamiltonians.jl")
+include("MeanField.jl")
 
 end
