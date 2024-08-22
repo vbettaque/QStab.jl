@@ -18,7 +18,7 @@ function tensor_qutrits(n)
     return zs, xs
 end
 
-function qutrit_sherrington_kirkpatrick(N, J, g)
+function qutrit_sherrington_kirkpatrick(N, J, g, λ=0)
     @assert N > 1
     zs, xs = tensor_qutrits(N)
     gauss = Normal(0, sqrt(J/N))
@@ -27,7 +27,7 @@ function qutrit_sherrington_kirkpatrick(N, J, g)
         for j=(i+1):N
             H -= rand(gauss) * (zs[i, :, :]' * zs[j, :, :] + zs[j, :, :]' * zs[i, :, :])
         end
-        H -= g * (xs[i, :, :] + xs[i, :, :]')
+        H -= g * (xs[i, :, :] + xs[i, :, :]') + λ * (zs[i, :, :] + zs[i, :, :]')
     end
     return H
 end

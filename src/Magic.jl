@@ -60,8 +60,8 @@ end
 function mana(ρ::AbstractMatrix{ComplexF64})
     D, D_ = size(ρ)
     n = 2 * log(3, D)
-    @assert D == D_ && isinteger(n)
-    n = Integer(n)
+    @assert D == D_ && isapprox(n, round(n))
+    n = round(Int, n)
 
     ρ = reshape(ρ, repeat([3], n)...)
     ρ = permutedims(ρ, inout_dims(n))

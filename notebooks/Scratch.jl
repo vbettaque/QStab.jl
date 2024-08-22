@@ -535,25 +535,25 @@ function spin_glass_mana(N, J, g_max, iters, steps)
         append!(gs, g)
         avg_mana = 0
         for i = 1:iters
-            H = Hamiltonians.qutrit_sherrington_kirkpatrick(N, J, g)
+            H = Hamiltonians.qutrit_sherrington_kirkpatrick(N, J, g, 2.0^(-17))
             # display(H)
             e = eigen(H)
-            display(e.values)
+            # display(e.values)
             ground_state = normalize(e.vectors[:,1])
             # display(ground_state)
-            display(e.vectors)
+            # display(e.vectors)
             rho = ground_state * ground_state'
             avg_mana += Magic.mana(rho)
         end
         avg_mana /= iters
-        @assert avg_mana < 0.1
+        # @assert avg_mana < 0.1
         append!(manas, avg_mana)
     end
     return gs, manas
 end
 
 using Plots
-gs, manas = spin_glass_mana(3, 0, 6, 1, 1000)
+gs, manas = spin_glass_mana(4, 1, 50, 100, 50)
 plot(gs, manas)
 
 # for i=1:9
