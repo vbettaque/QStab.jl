@@ -540,7 +540,7 @@ function spin_glass_mana(N, J, g_max, iters, steps)
             e = eigen(H)
             # display(e.values)
             ground_state = normalize(e.vectors[:,1])
-            # display(ground_state)
+            # println(round.(ground_state; digits=2))
             # display(e.vectors)
             rho = ground_state * ground_state'
             avg_mana += Magic.mana(rho)
@@ -553,7 +553,7 @@ function spin_glass_mana(N, J, g_max, iters, steps)
 end
 
 using Plots
-gs, manas = spin_glass_mana(4, 1, 50, 100, 50)
+gs, manas = spin_glass_mana(4, 1, 20, 400, 400)
 plot(gs, manas)
 
 # for i=1:9

@@ -27,6 +27,8 @@ function qutrit_sherrington_kirkpatrick(N, J, g, λ=0)
         for j=(i+1):N
             H -= rand(gauss) * (zs[i, :, :]' * zs[j, :, :] + zs[j, :, :]' * zs[i, :, :])
         end
+    end
+    for i=1:N
         H -= g * (xs[i, :, :] + xs[i, :, :]') + λ * (zs[i, :, :] + zs[i, :, :]')
     end
     return H
