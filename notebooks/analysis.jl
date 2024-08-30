@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.40
+# v0.19.41
 
 using Markdown
 using InteractiveUtils
@@ -186,7 +186,7 @@ Plots = "~1.39.0"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.3"
+julia_version = "1.10.4"
 manifest_format = "2.0"
 project_hash = "341c00aefb3b2e00a8f4e11be8b932f7c0adbae3"
 

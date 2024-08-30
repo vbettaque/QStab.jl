@@ -553,8 +553,20 @@ function spin_glass_mana(N, J, g_max, iters, steps)
 end
 
 using Plots
-gs, manas = spin_glass_mana(4, 1, 20, 400, 400)
-plot(gs, manas)
+Ns = 2:6
+J = 1
+g_max = 100
+iters = 1
+steps = 10000
+path = "data/magic/transverse_sk/"
+!ispath(path) && mkpath(path)
+for N = Ns
+    gs, manas = spin_glass_mana(N, J, g_max, iters, steps)
+    filename = "sk_N" * string(N) * "J" * string(J) * "g" * string(g_max) * "s" * string(steps) * "i" * string(iters) * ".csv"
+    labels = ["g", "M"]
+    frame = DataFrame(hcat(gs, manas), labels)
+    CSV.write(path * filename, frame)
+end
 
 # for i=1:9
 #     a = tritvec(i, 2)
