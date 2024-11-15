@@ -552,13 +552,15 @@ function spin_glass_mana(N, J, g_max, iters, steps)
     return gs, manas
 end
 
+
+
 using Plots
 Ns = 2:6
 J = 1
-g_max = 100
-iters = 1
+g_max = 10
+iters = 100
 steps = 10000
-path = "data/magic/transverse_sk/"
+path = "../data/magic/transverse_sk/"
 !ispath(path) && mkpath(path)
 for N = Ns
     gs, manas = spin_glass_mana(N, J, g_max, iters, steps)
