@@ -57,6 +57,30 @@ begin
 	ylabel!(L"\mathcal{M}")
 end
 
+# ╔═╡ bac8ddb9-aec3-4e26-afd2-fc32e7eab6ae
+begin
+	local g_range = 1:10
+	plot(data_2_100[!, 1][g_range], data_2_100[!, 2][g_range], ms=3, label=L"N=2")
+	plot!(data_3_100[!, 1][g_range], data_3_100[!, 2][g_range], ms=3, label=L"N=3")
+	plot!(data_4_100[!, 1][g_range], data_4_100[!, 2][g_range], ms=3, label=L"N=4")
+	plot!(data_5_100[!, 1][g_range], data_5_100[!, 2][g_range], ms=3, label=L"N=5")
+	plot!(data_6_100[!, 1][g_range], data_6_100[!, 2][g_range], ms=3, label=L"N=6")
+	xlabel!(L"g")
+	ylabel!(L"\mathcal{M}")
+end
+
+# ╔═╡ 0de94c64-6cb5-4607-b7cb-7e87d6ef807f
+begin
+	local g_range = 1:10000
+	plot(data_2_100[!, 1][g_range], data_2_100[!, 2][g_range] ./ 2, ms=3, label=L"N=2")
+	plot!(data_3_100[!, 1][g_range], data_3_100[!, 2][g_range] ./ 3, ms=3, label=L"N=3")
+	plot!(data_4_100[!, 1][g_range], data_4_100[!, 2][g_range] ./ 4, ms=3, label=L"N=4")
+	plot!(data_5_100[!, 1][g_range], data_5_100[!, 2][g_range] ./ 5, ms=3, label=L"N=5")
+	plot!(data_6_100[!, 1][g_range], data_6_100[!, 2][g_range] ./ 6, ms=3, label=L"N=6")
+	xlabel!(L"g")
+	ylabel!(L"\mathcal{M} / N")
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1301,5 +1325,7 @@ version = "1.4.1+1"
 # ╠═b84a20b1-1dd3-41f9-b718-8459d03807a8
 # ╠═ca7548f2-d928-46f1-bde7-94e5bbcf8920
 # ╠═9701e646-67e2-465f-86c4-da847d6e3da9
+# ╠═bac8ddb9-aec3-4e26-afd2-fc32e7eab6ae
+# ╠═0de94c64-6cb5-4607-b7cb-7e87d6ef807f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
