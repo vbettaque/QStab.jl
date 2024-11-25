@@ -34,4 +34,14 @@ function qutrit_sherrington_kirkpatrick(N, J, g, λ=0)
     return H
 end
 
+function qutrit_magnetization(N)
+    @assert N > 0
+    M = zeros(ComplexF64, 3^N, 3^N)
+    zs, _ = tensor_qutrits(N)
+    for i=1:N
+        M += (zs[i, :, :] + zs[i, :, :]')
+    end
+    return M / N
+end
+
 end

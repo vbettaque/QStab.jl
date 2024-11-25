@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.3
+# v0.20.1
 
 using Markdown
 using InteractiveUtils
@@ -79,6 +79,24 @@ begin
 	plot!(data_6_100[!, 1][g_range], data_6_100[!, 2][g_range] ./ 6, ms=3, label=L"N=6")
 	xlabel!(L"g")
 	ylabel!(L"\mathcal{M} / N")
+end
+
+# ╔═╡ e0bbfed2-aaeb-4754-add4-b4f0aaf863d0
+begin
+	data_2_g5 = CSV.read("../data/magic/transverse_sk/sk_N2J1g5s10000i100.csv", DataFrame)
+	data_3_g5 = CSV.read("../data/magic/transverse_sk/sk_N3J1g5s10000i100.csv", DataFrame)
+	data_4_g5 = CSV.read("../data/magic/transverse_sk/sk_N4J1g5s10000i100.csv", DataFrame)
+end
+
+# ╔═╡ c57d8135-ac37-4b9e-8890-f7f598199d29
+begin
+	local g_range = 1:1000
+	# plot(data_2_g5[!, 1][g_range], data_2_100[!, 2][g_range] ./ 2, ms=3, label=L"N=2")
+	# plot!(data_3_g5[!, 1][g_range], data_3_100[!, 2][g_range] ./ 3, ms=3, label=L"N=3")
+	plot(data_4_g5[!, 1][g_range], data_4_g5[!, 2][g_range], ms=3, label="Mana")
+	plot!(data_4_g5[!, 1][g_range], data_4_g5[!, 3][g_range], ms=3, label="Magnetization")
+	xlabel!(L"g")
+	#ylabel!(L"\mathcal{M")
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1327,5 +1345,7 @@ version = "1.4.1+1"
 # ╠═9701e646-67e2-465f-86c4-da847d6e3da9
 # ╠═bac8ddb9-aec3-4e26-afd2-fc32e7eab6ae
 # ╠═0de94c64-6cb5-4607-b7cb-7e87d6ef807f
+# ╠═e0bbfed2-aaeb-4754-add4-b4f0aaf863d0
+# ╠═c57d8135-ac37-4b9e-8890-f7f598199d29
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

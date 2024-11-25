@@ -528,13 +528,16 @@ end
 # end
 
 function spin_glass_mana(N, J, g_max, iters, steps)
-    gs = []
-    manas = []
-    for g in LinRange(0, g_max, steps)
-        println("g = ", g)
-        append!(gs, g)
+    gs = collect(LinRange(0, g_max, steps))
+    manas = zeros(Float64, steps)
+    magnets = zeros(Float64, steps)
+    M = Hermitian(Hamiltonians.qutrit_magnetization(N))
+    Threads.@threads for i=1:steps
+        g = gs[i]
+        # println("g = ", g)
         avg_mana = 0
-        for i = 1:iters
+        avg_magnet = 0
+        for _ = 1:iters
             H = Hamiltonians.qutrit_sherrington_kirkpatrick(N, J, g, 2.0^(-17))
             # display(H)
             e = eigen(H)
@@ -544,29 +547,32 @@ function spin_glass_mana(N, J, g_max, iters, steps)
             # display(e.vectors)
             rho = ground_state * ground_state'
             avg_mana += Magic.mana(rho)
+            avg_magnet += ground_state' * M * ground_state
         end
         avg_mana /= iters
+        avg_magnet /= iters
         # @assert avg_mana < 0.1
-        append!(manas, avg_mana)
+        @assert imag(avg_magnet) < 0.01
+        manas[i] = avg_mana
+        magnets[i] = real(avg_magnet)
     end
-    return gs, manas
+    return gs, manas, magnets
 end
 
 
-
-using Plots
-Ns = 2:6
+Ns = 2:4
 J = 1
-g_max = 10
-iters = 100
-steps = 10000
-path = "../data/magic/transverse_sk/"
+g_max = 0.5
+iters = 1000
+steps = 100000
+path = "./data/magic/transverse_sk/"
 !ispath(path) && mkpath(path)
 for N = Ns
-    gs, manas = spin_glass_mana(N, J, g_max, iters, steps)
+    println("N = ", N)
+    gs, manas, magnets = spin_glass_mana(N, J, g_max, iters, steps)
     filename = "sk_N" * string(N) * "J" * string(J) * "g" * string(g_max) * "s" * string(steps) * "i" * string(iters) * ".csv"
-    labels = ["g", "M"]
-    frame = DataFrame(hcat(gs, manas), labels)
+    labels = ["g", "mana", "magnet"]
+    frame = DataFrame(hcat(gs, manas, magnets), labels)
     CSV.write(path * filename, frame)
 end
 
