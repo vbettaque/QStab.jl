@@ -44,4 +44,14 @@ function qutrit_magnetization(N)
     return M / N
 end
 
+function qutrit_edward_anderson(N)
+    @assert N > 0
+    EA = zeros(ComplexF64, 9^N, 9^N)
+    zs, _ = tensor_qutrits(N)
+    for i=1:N
+        EA += (zs[i, :, :] + zs[i, :, :]') ⊗ (zs[i, :, :] + zs[i, :, :]')
+    end
+    return EA / N
+end
+
 end

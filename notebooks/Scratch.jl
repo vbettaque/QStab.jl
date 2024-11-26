@@ -531,14 +531,17 @@ function spin_glass_mana(N, J, g_max, iters, steps)
     gs = collect(LinRange(0, g_max, steps))
     manas = zeros(Float64, steps)
     magnets = zeros(Float64, steps)
+    eas = zeros(Float64, steps)
     M = Hermitian(Hamiltonians.qutrit_magnetization(N))
+    EA = Hermitian(Hamiltonians.qutrit_edward_anderson(N))
     Threads.@threads for i=1:steps
         g = gs[i]
         # println("g = ", g)
         avg_mana = 0
         avg_magnet = 0
+        avg_ea = 0
         for _ = 1:iters
-            H = Hamiltonians.qutrit_sherrington_kirkpatrick(N, J, g, 2.0^(-17))
+            H = Hamiltonians.qutrit_sherrington_kirkpatrick(N, J, g, 0)
             # display(H)
             e = eigen(H)
             # display(e.values)
@@ -548,31 +551,34 @@ function spin_glass_mana(N, J, g_max, iters, steps)
             rho = ground_state * ground_state'
             avg_mana += Magic.mana(rho)
             avg_magnet += ground_state' * M * ground_state
+            avg_ea += (ground_state ⊗ ground_state)' * EA * (ground_state ⊗ ground_state)
         end
         avg_mana /= iters
         avg_magnet /= iters
+        avg_ea /= iters
         # @assert avg_mana < 0.1
         @assert imag(avg_magnet) < 0.01
         manas[i] = avg_mana
         magnets[i] = real(avg_magnet)
+        eas[i] = real(avg_ea)
     end
-    return gs, manas, magnets
+    return gs, manas, magnets, eas
 end
 
 
-Ns = 2:4
+Ns = 2:5
 J = 1
-g_max = 0.5
+g_max = 0.0005
 iters = 1000
 steps = 100000
 path = "./data/magic/transverse_sk/"
 !ispath(path) && mkpath(path)
 for N = Ns
     println("N = ", N)
-    gs, manas, magnets = spin_glass_mana(N, J, g_max, iters, steps)
+    gs, manas, magnets, eas = spin_glass_mana(N, J, g_max, iters, steps)
     filename = "sk_N" * string(N) * "J" * string(J) * "g" * string(g_max) * "s" * string(steps) * "i" * string(iters) * ".csv"
-    labels = ["g", "mana", "magnet"]
-    frame = DataFrame(hcat(gs, manas, magnets), labels)
+    labels = ["g", "mana", "magnet", "ea"]
+    frame = DataFrame(hcat(gs, manas, magnets, eas), labels)
     CSV.write(path * filename, frame)
 end
 

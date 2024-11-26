@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.1
+# v0.20.3
 
 using Markdown
 using InteractiveUtils
@@ -95,6 +95,21 @@ begin
 	# plot!(data_3_g5[!, 1][g_range], data_3_100[!, 2][g_range] ./ 3, ms=3, label=L"N=3")
 	plot(data_4_g5[!, 1][g_range], data_4_g5[!, 2][g_range], ms=3, label="Mana")
 	plot!(data_4_g5[!, 1][g_range], data_4_g5[!, 3][g_range], ms=3, label="Magnetization")
+	xlabel!(L"g")
+	#ylabel!(L"\mathcal{M")
+end
+
+# ╔═╡ 4d0a5433-72c0-48b2-a5b4-4881bc4acb3a
+begin
+	data_2_g1 = CSV.read("../data/magic/transverse_sk/sk_N2J1g1s10000i100.csv", DataFrame)
+	data_3_g1 = CSV.read("../data/magic/transverse_sk/sk_N3J1g1s10000i100.csv", DataFrame)
+end
+
+# ╔═╡ 7f8392c4-94ec-4005-ada1-3687972fc35b
+begin
+	local g_range = 1:20
+	plot(data_3_g1[!, 1][g_range], data_3_g1[!, 2][g_range], ms=3, label="Mana")
+	plot!(data_3_g1[!, 1][g_range], data_3_g1[!, 4][g_range], ms=3, label="Edward Anderson")
 	xlabel!(L"g")
 	#ylabel!(L"\mathcal{M")
 end
@@ -1347,5 +1362,7 @@ version = "1.4.1+1"
 # ╠═0de94c64-6cb5-4607-b7cb-7e87d6ef807f
 # ╠═e0bbfed2-aaeb-4754-add4-b4f0aaf863d0
 # ╠═c57d8135-ac37-4b9e-8890-f7f598199d29
+# ╠═4d0a5433-72c0-48b2-a5b4-4881bc4acb3a
+# ╠═7f8392c4-94ec-4005-ada1-3687972fc35b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
